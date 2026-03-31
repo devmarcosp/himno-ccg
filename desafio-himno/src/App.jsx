@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update } from "firebase/database";
 import { 
   Music, Star, Trophy, RotateCcw, Award, UserMinus, Wifi, 
   Smartphone, ChevronRight, School, Drum, Timer, Hand, LayoutGrid, 
-  ThumbsUp, ThumbsDown, Square, PlayCircle, RefreshCw, ArrowLeft, Mic2
+  ThumbsUp, ThumbsDown, Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, X, Check
 } from 'lucide-react';
 
 // ==========================================
@@ -77,6 +77,9 @@ const generateBeatSequence = () => {
     return seq;
 };
 
+// ==========================================
+// 4. COMPONENTES VISUALES
+// ==========================================
 const MusicNote = ({ type, color = "currentColor" }) => {
   const baseClass = "flex items-center justify-center p-1";
   switch (type) {
@@ -123,7 +126,7 @@ const MusicNote = ({ type, color = "currentColor" }) => {
 };
 
 // ==========================================
-// VISTAS DE NAVEGACIÓN PROYECTOR
+// VISTAS DE CONFIGURACIÓN
 // ==========================================
 const CourseSelector = ({ onSelect }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -136,9 +139,7 @@ const CourseSelector = ({ onSelect }) => {
           <Music size={20} />
           <span className="block text-[7px] font-black mt-1 uppercase">{isPlaying ? 'Sonando' : 'Himno'}</span>
         </button>
-        <div className="bg-red-600/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <School className="text-red-500" size={32} />
-        </div>
+        <School className="text-red-500 mx-auto mb-6" size={48} />
         <h2 className="text-2xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">DALE PLAY CCG</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-white">
           {CURSOS.map(curso => (
@@ -157,10 +158,10 @@ const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
   <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white font-sans text-center">
     <button onClick={onBack} className="mb-10 text-slate-500 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest mx-auto transition-colors"><RotateCcw size={16}/> Volver</button>
     <h2 className="text-5xl font-black mb-2 italic uppercase tracking-tighter">{curso}</h2>
-    <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600">Modo de Evaluación</p>
+    <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600">Modalidad de Clase</p>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl w-full text-slate-900">
       <button onClick={() => onSelectCategory('himno')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-200">
-        <div className="bg-red-100 p-6 rounded-full text-red-600"><Music size={60} /></div>
+        <div className="bg-red-100 p-6 rounded-full text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all"><Music size={60} /></div>
         <span className="text-4xl font-black uppercase block italic tracking-tighter text-slate-900">HIMNO CCG</span>
       </button>
       <button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-950">
@@ -186,10 +187,9 @@ const RemoteControl = () => {
     onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
   }, []);
 
-  const toggleError = (rowIdx, hand) => {
+  const toggleStatus = (rowIdx, hand) => {
     const newVal = [...evalPol];
-    // Invertimos: si está en true (bien), pasa a false (error).
-    newVal[rowIdx][hand] = !newVal[rowIdx][hand];
+    newVal[rowIdx][hand] = !newVal[rowIdx][hand]; // Togle entre true (verde) y false (rojo)
     setEvalPol(newVal);
     update(ref(db, 'remoto'), { evalPol: newVal });
   };
@@ -213,32 +213,32 @@ const RemoteControl = () => {
 
         {remoteView === "menu" ? (
           <div className="space-y-6">
-              <h2 className="text-center font-black text-2xl uppercase tracking-tighter italic text-red-500">Panel de Control</h2>
-              <button onClick={() => setRemoteView("himno")} className="w-full bg-white text-slate-900 p-8 rounded-3xl font-black text-2xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"><Mic2 /> CONTROL HIMNO</button>
-              <button onClick={() => setRemoteView("polirritmia")} className="w-full bg-blue-600 text-white p-8 rounded-3xl font-black text-2xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"><Drum /> POLIRRITMIA</button>
+              <h2 className="text-center font-black text-2xl uppercase tracking-tighter italic text-red-500">Panel Pro</h2>
+              <button onClick={() => { setRemoteView("himno"); update(ref(db, 'estado'), { modoActual: 'himno' }); }} className="w-full bg-white text-slate-900 p-8 rounded-3xl font-black text-2xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"><Mic2 /> CONTROL HIMNO</button>
+              <button onClick={() => { setRemoteView("polirritmia"); update(ref(db, 'estado'), { modoActual: 'polirritmia' }); }} className="w-full bg-blue-600 text-white p-8 rounded-3xl font-black text-2xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"><Drum /> POLIRRITMIA</button>
           </div>
         ) : remoteView === "polirritmia" ? (
            <div className="space-y-4 animate-in fade-in">
-              <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic">Marca solo si se equivoca:</p>
+              <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic">Toca para marcar ERROR:</p>
               <div className="grid grid-cols-1 gap-3">
                  {evalPol.map((row, idx) => (
                     <div key={idx} className="grid grid-cols-2 gap-3">
-                        <button onClick={() => toggleError(idx, 'L')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.L === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.L ? "IZQ OK" : "IZQ ERROR"}
+                        <button onClick={() => toggleStatus(idx, 'L')} className={`py-7 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.L === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white animate-shake'}`}>
+                            {row.L ? <Check size={16}/> : <X size={16}/>} IZQ {idx + 1}
                         </button>
-                        <button onClick={() => toggleError(idx, 'R')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.R === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.R ? "DER OK" : "DER ERROR"}
+                        <button onClick={() => toggleStatus(idx, 'R')} className={`py-7 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.R === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white animate-shake'}`}>
+                            {row.R ? <Check size={16}/> : <X size={16}/>} DER {idx + 1}
                         </button>
                     </div>
                  ))}
               </div>
-              <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 flex items-center justify-center gap-2 mt-4"><RefreshCw size={12}/> Limpiar Evaluación</button>
+              <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 flex items-center justify-center gap-2 mt-4"><RefreshCw size={12}/> Reiniciar Evaluación</button>
            </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in">
-            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Escribir Palabra del Himno</p>
-            <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors" />
-            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-[12px] border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar</button>
+          <div className="space-y-6 animate-in fade-in text-slate-900">
+            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Control Himno</p>
+            <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors text-slate-100" />
+            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-[12px] border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar Palabra</button>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
                 <button onClick={() => update(ref(db, 'remoto/palabraEnviada'), { texto: "CORRECTO", timestamp: Date.now() })} className="bg-green-600 py-4 rounded-xl font-black"><ThumbsUp size={24} className="mx-auto text-white"/></button>
                 <button onClick={() => update(ref(db, 'remoto/palabraEnviada'), { texto: "ERROR", timestamp: Date.now() })} className="bg-red-600 py-4 rounded-xl font-black"><ThumbsDown size={24} className="mx-auto text-white"/></button>
@@ -269,8 +269,12 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
   const lastProcessedTime = useRef(0);
 
   const initAudio = () => {
-    if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+    if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+    }
   };
 
   const playMetronomeSound = () => {
@@ -460,7 +464,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'playing' && (
             <div className="space-y-10 animate-in fade-in">
               <div className={`p-8 sm:p-12 rounded-[4rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'polirritmia' ? 'bg-slate-900 border-blue-600' : 'bg-slate-900 border-red-600'}`}>
-                <div className="flex items-center gap-10">
+                <div className="flex items-center gap-10 text-white">
                     <div className={`${modo === 'polirritmia' ? 'bg-blue-600 shadow-blue-500/50' : 'bg-red-600 shadow-red-500/50'} w-16 h-16 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center shadow-2xl`}>{modo === 'polirritmia' ? <Drum size={48} className="text-white" /> : <Music className="text-white" size={48} />}</div>
                     <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none text-white">{selectedStudent?.name}</h3>
                 </div>
@@ -468,7 +472,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
 
               {modo === 'polirritmia' ? (
                 <div className="bg-white p-6 md:p-8 rounded-[4rem] shadow-2xl border flex flex-col gap-6 relative overflow-hidden">
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 font-black text-[10px] text-blue-300 uppercase tracking-widest">Lectura de 4 Compases</div>
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 font-black text-[10px] text-blue-300 uppercase tracking-widest">Partitura de 4 Compases</div>
                     {polyrhythmRows.map((row, rIdx) => (
                         <div key={rIdx} className="flex gap-4 border-b border-slate-100 last:border-0 pb-4 last:pb-0 animate-in slide-in-from-bottom" style={{animationDelay: `${rIdx*100}ms`}}>
                             <div className="bg-slate-800 text-white w-10 flex items-center justify-center font-black rounded-xl text-xl italic shadow-md">{rIdx + 1}</div>
