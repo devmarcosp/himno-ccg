@@ -238,7 +238,7 @@ const RemoteControl = () => {
           <div className="space-y-6 animate-in fade-in">
             <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Escribir Palabra:</p>
             <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors" />
-            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-[12px] border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar al Proyector</button>
+            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-[12px] border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar</button>
           </div>
         )}
         <div className="mt-8 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest">{appState.cursoActual}</div>
