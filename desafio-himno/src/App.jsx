@@ -140,7 +140,7 @@ const CourseSelector = ({ onSelect }) => {
           <span className="block text-[7px] font-black mt-1 uppercase">{isPlaying ? 'Sonando' : 'Himno'}</span>
         </button>
         <School className="text-red-500 mx-auto mb-6" size={48} />
-        <h2 className="text-2xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">DALE PLAY CCG</h2>
+        <h2 className="text-2xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">CCG INTERACTIVO</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-white">
           {CURSOS.map(curso => (
             <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 py-4 px-6 rounded-xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
@@ -417,7 +417,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
       <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-6xl flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-4">
         <div className="flex items-center gap-6">
           <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">{modo === 'polirritmia' ? <Drum size={32}/> : <Music size={32} />}</div>
-          <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none text-slate-900">Dale Play <span className="text-red-600">CCG</span></h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
+          <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none text-slate-900">CCG-INTERACTIVO <span className="text-red-600">CCG</span></h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
         </div>
         <div className="flex items-center gap-4">
             {modo === 'polirritmia' && (
