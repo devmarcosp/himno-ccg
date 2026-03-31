@@ -78,7 +78,7 @@ const generateBeatSequence = () => {
 };
 
 // ==========================================
-// 4. COMPONENTES DE DISEÑO
+// 4. COMPONENTES VISUALES
 // ==========================================
 const MusicNote = ({ type, color = "currentColor" }) => {
   const baseClass = "flex items-center justify-center p-1";
@@ -86,7 +86,7 @@ const MusicNote = ({ type, color = "currentColor" }) => {
     case 'Redonda':
       return (
         <div className={baseClass}>
-          <svg viewBox="0 0 100 60" className="w-12 h-8 md:w-16 md:h-10">
+          <svg viewBox="0 0 100 60" className="w-14 h-8 md:w-20 md:h-12">
             <ellipse cx="50" cy="30" rx="35" ry="22" fill="none" stroke={color} strokeWidth="12" transform="rotate(-20 50 30)" />
           </svg>
         </div>
@@ -94,7 +94,7 @@ const MusicNote = ({ type, color = "currentColor" }) => {
     case 'Blanca':
       return (
         <div className={baseClass}>
-          <svg viewBox="0 0 80 140" className="w-8 h-12 md:w-10 md:h-20">
+          <svg viewBox="0 0 80 140" className="w-10 h-16 md:w-14 md:h-24">
             <ellipse cx="30" cy="110" rx="22" ry="16" fill="none" stroke={color} strokeWidth="12" transform="rotate(-20 30 110)" />
             <path d="M52 10 L52 105" stroke={color} strokeWidth="12" strokeLinecap="round" />
           </svg>
@@ -103,7 +103,7 @@ const MusicNote = ({ type, color = "currentColor" }) => {
     case 'Negra':
       return (
         <div className={baseClass}>
-          <svg viewBox="0 0 80 140" className="w-8 h-12 md:w-10 md:h-20">
+          <svg viewBox="0 0 80 140" className="w-10 h-16 md:w-14 md:h-24">
             <ellipse cx="30" cy="110" rx="22" ry="16" fill={color} transform="rotate(-20 30 110)" />
             <path d="M52 10 L52 105" stroke={color} strokeWidth="12" strokeLinecap="round" />
           </svg>
@@ -112,11 +112,11 @@ const MusicNote = ({ type, color = "currentColor" }) => {
     case 'Corcheas':
       return (
         <div className={baseClass}>
-          <svg viewBox="0 0 140 140" className="w-12 h-12 md:w-16 md:h-16">
+          <svg viewBox="0 0 140 140" className="w-16 h-16 md:w-24 md:h-24">
             <ellipse cx="25" cy="110" rx="18" ry="12" fill={color} transform="rotate(-20 25 110)" />
-            <path d="M42 20 L42 105" stroke={color} strokeWidth="12" />
+            <path d="M42 20 L42 105" stroke={color} strokeWidth="10" />
             <ellipse cx="95" cy="110" rx="18" ry="12" fill={color} transform="rotate(-20 95 110)" />
-            <path d="M112 20 L112 105" stroke={color} strokeWidth="12" />
+            <path d="M112 20 L112 105" stroke={color} strokeWidth="10" />
             <path d="M42 25 L112 25" stroke={color} strokeWidth="16" />
           </svg>
         </div>
@@ -126,24 +126,30 @@ const MusicNote = ({ type, color = "currentColor" }) => {
 };
 
 // ==========================================
-// VISTA: NAVEGACIÓN PROYECTOR
+// VISTAS DE NAVEGACIÓN PROYECTOR
 // ==========================================
 const CourseSelector = ({ onSelect }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play().catch(e => console.log(e));
+    setIsPlaying(!isPlaying);
+  };
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
       <audio ref={audioRef} src="/himno.mp3" onEnded={() => setIsPlaying(false)} />
       <div className="bg-slate-800 p-6 sm:p-12 rounded-4xl border-2 border-slate-700 shadow-2xl max-w-3xl w-full text-center relative overflow-hidden">
-        <button onClick={() => { if(isPlaying) audioRef.current.pause(); else audioRef.current.play(); setIsPlaying(!isPlaying); }} className={`absolute top-4 right-4 p-3 rounded-full transition-all border-b-4 ${isPlaying ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-slate-700 border-slate-900 text-slate-400'}`}>
+        <button onClick={toggleAudio} className={`absolute top-4 right-4 p-3 rounded-full transition-all border-b-4 ${isPlaying ? 'bg-red-600 border-red-800 animate-pulse text-white' : 'bg-slate-700 border-slate-900 text-slate-400'}`}>
           <Music size={20} />
           <span className="block text-[7px] font-black mt-1 uppercase">{isPlaying ? 'Sonando' : 'Himno'}</span>
         </button>
-        <School className="text-red-500 mx-auto mb-6" size={48} />
-        <h2 className="text-2xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">DALE PLAY CCG</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-white">
+        <School className="text-red-500 mx-auto mb-6 shadow-inner" size={48} />
+        <h2 className="text-2xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">CCG-INTERACTIVO</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
           {CURSOS.map(curso => (
-            <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 py-4 px-6 rounded-xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
+            <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 text-white py-4 px-6 rounded-xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
               <span className="text-lg italic font-black">{curso}</span>
               <ChevronRight className="group-hover:translate-x-2 transition-transform" />
             </button>
@@ -158,7 +164,7 @@ const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
   <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white font-sans text-center">
     <button onClick={onBack} className="mb-10 text-slate-500 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest mx-auto transition-colors"><RotateCcw size={16}/> Volver</button>
     <h2 className="text-5xl font-black mb-2 italic uppercase tracking-tighter">{curso}</h2>
-    <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600">Modo de Actividad</p>
+    <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600">Modalidad de Clase</p>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl w-full text-slate-900">
       <button onClick={() => onSelectCategory('himno')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-200">
         <div className="bg-red-100 p-6 rounded-full text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all"><Music size={60} /></div>
@@ -166,14 +172,14 @@ const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
       </button>
       <button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-950">
         <div className="bg-blue-600 p-6 rounded-full text-white group-hover:bg-white group-hover:text-blue-600 transition-all"><LayoutGrid size={60} /></div>
-        <span className="text-4xl font-black uppercase block italic tracking-tighter text-white">POLIRRITMIA</span>
+        <span className="text-4xl font-black uppercase block italic tracking-tighter">POLIRRITMIA</span>
       </button>
     </div>
   </div>
 );
 
 // ==========================================
-// VISTA: CONTROL REMOTO (CELULAR)
+// VISTA: CONTROL REMOTO (PARA CELULAR)
 // ==========================================
 const RemoteControl = () => {
   const [remoteView, setRemoteView] = useState("menu");
@@ -189,7 +195,7 @@ const RemoteControl = () => {
 
   const toggleStatus = (rowIdx, hand) => {
     const newVal = [...evalPol];
-    newVal[rowIdx][hand] = !newVal[rowIdx][hand]; // Bien (True) <-> Mal (False)
+    newVal[rowIdx][hand] = !newVal[rowIdx][hand];
     setEvalPol(newVal);
     update(ref(db, 'remoto'), { evalPol: newVal });
   };
@@ -201,14 +207,14 @@ const RemoteControl = () => {
       .then(() => { setStatus("OK ✓"); setCurrentWord(""); setTimeout(() => setStatus("Conectado"), 1000); });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 text-slate-800 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs tracking-widest">Cargando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 text-slate-800 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs tracking-widest">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
-      <div className="w-full max-w-md bg-slate-900 p-6 rounded-[3rem] border-2 border-slate-800 shadow-2xl relative">
+      <div className="w-full max-w-md bg-slate-900 p-6 rounded-3xl border-2 border-slate-800 shadow-2xl relative">
         <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
           <button onClick={() => setRemoteView("menu")} className="p-2 bg-slate-800 rounded-full text-slate-400"><ArrowLeft size={20}/></button>
-          <div className="text-[10px] font-black text-green-400 bg-green-950 px-4 py-1.5 rounded-full flex items-center gap-2"><Wifi size={12}/> {status}</div>
+          <div className="text-[10px] font-black text-green-400 bg-green-950 px-4 py-1.5 rounded-full flex items-center gap-2 animate-pulse"><Wifi size={12}/> {status}</div>
         </div>
 
         {remoteView === "menu" ? (
@@ -219,15 +225,15 @@ const RemoteControl = () => {
           </div>
         ) : remoteView === "polirritmia" ? (
            <div className="space-y-4 animate-in fade-in">
-              <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic">Marca solo si falla:</p>
+              <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic">Toca para marcar ERROR:</p>
               <div className="grid grid-cols-1 gap-3">
                  {evalPol.map((row, idx) => (
                     <div key={idx} className="grid grid-cols-2 gap-3">
-                        <button onClick={() => toggleStatus(idx, 'L')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.L === true ? 'bg-green-600 border-green-800' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.L ? "IZQ " + (idx+1) + " OK" : "IZQ " + (idx+1) + " ERROR"}
+                        <button onClick={() => toggleStatus(idx, 'L')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.L === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
+                            {row.L ? <Check size={16}/> : <X size={16}/>} IZQ {idx + 1}
                         </button>
-                        <button onClick={() => toggleStatus(idx, 'R')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.R === true ? 'bg-green-600 border-green-800' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.R ? "DER " + (idx+1) + " OK" : "DER " + (idx+1) + " ERROR"}
+                        <button onClick={() => toggleStatus(idx, 'R')} className={`py-6 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.R === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
+                            {row.R ? <Check size={16}/> : <X size={16}/>} DER {idx + 1}
                         </button>
                     </div>
                  ))}
@@ -235,13 +241,13 @@ const RemoteControl = () => {
               <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 flex items-center justify-center gap-2 mt-4"><RefreshCw size={12}/> Reiniciar Evaluación</button>
            </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in">
-            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Escribir Palabra:</p>
+          <div className="space-y-6 animate-in fade-in text-white">
+            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic">Control Himno: Enviar Palabra</p>
             <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors" />
-            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-[12px] border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar</button>
+            <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-12 border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">Enviar al Proyector</button>
           </div>
         )}
-        <div className="mt-8 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest">{appState.cursoActual}</div>
+        <div className="mt-8 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest">{appState?.cursoActual}</div>
       </div>
     </div>
   );
@@ -397,10 +403,10 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans p-4 sm:p-8 overflow-x-hidden text-slate-900">
-      <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 sm:p-10 rounded-6xl flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-4">
+      <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-6xl flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-4">
         <div className="flex items-center gap-6">
           <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">{modo === 'polirritmia' ? <Drum size={32}/> : <Music size={32} />}</div>
-          <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none text-slate-900">Dale Play <span className="text-red-600">CCG</span></h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
+          <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none text-slate-900">CCG-INTERACTIVO</h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
         </div>
         <div className="flex items-center gap-4">
             {modo === 'polirritmia' && (
@@ -422,8 +428,8 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'lobby' && (
             <div className="bg-white rounded-6xl p-12 sm:p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-125 animate-in zoom-in duration-500">
               <div className="bg-red-50 p-10 rounded-full mb-10 text-red-600">{modo === 'polirritmia' ? <Drum size={100} className="animate-bounce" /> : <Star size={100} className="animate-pulse" fill="currentColor" />}</div>
-              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter italic">¿Quién pasa?</h2>
-              <button onClick={startSpin} className={`text-white text-3xl sm:text-6xl font-black px-12 sm:px-24 py-8 sm:py-12 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>GIRAR RULETA</button>
+              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter">¿Quién pasa?</h2>
+              <button onClick={() => { initAudio(); startSpin(); }} className={`text-white text-3xl sm:text-6xl font-black px-12 sm:px-24 py-8 sm:py-12 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>GIRAR RULETA</button>
             </div>
           )}
 
@@ -445,8 +451,8 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           )}
 
           {gameState === 'playing' && (
-            <div className="space-y-10 animate-in fade-in">
-              <div className={`text-white p-8 sm:p-12 rounded-[4rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'polirritmia' ? 'bg-slate-900 border-blue-600' : 'bg-slate-900 border-red-600'}`}>
+            <div className="space-y-10 animate-in fade-in text-white">
+              <div className={`p-8 sm:p-12 rounded-[4rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'polirritmia' ? 'bg-slate-900 border-blue-600' : 'bg-slate-900 border-red-600'}`}>
                 <div className="flex items-center gap-10">
                     <div className={`${modo === 'polirritmia' ? 'bg-blue-600 shadow-blue-500/50' : 'bg-red-600 shadow-red-500/50'} w-16 h-16 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center shadow-2xl`}>{modo === 'polirritmia' ? <Drum size={48} className="text-white" /> : <Music className="text-white" size={48} />}</div>
                     <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none text-white">{selectedStudent?.name}</h3>
@@ -454,7 +460,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
               </div>
 
               {modo === 'polirritmia' ? (
-                <div className="bg-white p-6 md:p-8 rounded-[4rem] shadow-2xl border flex flex-col gap-6 relative overflow-hidden">
+                <div className="bg-white p-6 md:p-8 rounded-[4rem] shadow-2xl border flex flex-col gap-6 relative overflow-hidden text-slate-900">
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 font-black text-[10px] text-blue-300 uppercase tracking-widest">Partitura de 4 Compases</div>
                     {polyrhythmRows.map((row, rIdx) => (
                         <div key={rIdx} className="flex gap-4 border-b border-slate-100 last:border-0 pb-4 last:pb-0 animate-in slide-in-from-bottom" style={{animationDelay: `${rIdx*100}ms`}}>
@@ -471,9 +477,9 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
                     ))}
                 </div>
               ) : (
-                <div className="bg-white p-8 sm:p-20 rounded-6xl shadow-2xl min-h-100 flex flex-col justify-center border relative overflow-hidden text-center">
+                <div className="bg-white p-8 sm:p-20 rounded-6xl shadow-2xl min-h-100 flex flex-col justify-center border relative overflow-hidden text-center text-slate-900">
                     <h4 className="absolute top-10 left-16 text-red-600 font-black text-xs uppercase tracking-widest flex items-center gap-4 animate-pulse"><div className="w-3 h-3 bg-red-600 rounded-full"></div> {currentSectionData?.title}</h4>
-                    <div className="space-y-10 text-slate-800">
+                    <div className="space-y-10 text-slate-800 text-slate-900">
                     {currentSectionData?.lines.map((line, lIdx) => (
                         <p key={lIdx} className="text-3xl sm:text-5xl font-black flex flex-wrap gap-x-6 leading-[1.1] justify-center text-slate-900">
                         {line.map((word, wIdx) => (
@@ -498,17 +504,18 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
               <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[11rem] font-mono font-black mb-16 shadow-2xl leading-none">
                 {sessionPoints}
               </div>
-              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-[2.5rem] font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform">Siguiente</button>
+              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform text-white">Siguiente</button>
             </div>
           )}
         </div>
 
+        {/* RANKING PROTEGIDO */}
         <div className="lg:col-span-4 order-2 text-slate-900">
-          <div className="bg-white rounded-[3rem] sm:rounded-[4rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32 text-slate-900">
+          <div className="bg-white rounded-[3rem] sm:rounded-[4rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32">
             <div className="p-8 sm:p-10 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600 text-white">
               <h3 className="font-black uppercase text-2xl italic flex items-center gap-4 text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3>
             </div>
-            <div className="max-h-125 lg:max-h-187.5 overflow-y-auto scrollbar-hide bg-white">
+            <div className="max-h-125 lg:max-h-187.5 overflow-y-auto scrollbar-hide bg-white text-slate-900">
               {students
                 .sort((a,b) => (b.points || 0) - (a.points || 0) || a.id - b.id)
                 .map((s, idx) => (
