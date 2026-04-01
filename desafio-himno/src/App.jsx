@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   Smartphone, ChevronRight, School, Drum, Hand, LayoutGrid, 
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 
 // ==========================================
@@ -201,7 +201,7 @@ const RemoteControl = () => {
         const val = snap.val();
         setAppState(val);
         
-        // Lógica de navegación solo la primera vez que se carga el estado para evitar bucles
+        // FIX: Navegación automática solo al inicio
         if (val && !hasInitializedNav.current) {
             hasInitializedNav.current = true;
             if (val.cursoActual !== CURSO_CON_POLIRRITMIA) {
@@ -228,7 +228,7 @@ const RemoteControl = () => {
       .then(() => { setStatus("OK ✓"); setCurrentWord(""); setTimeout(() => setStatus("Conectado"), 1000); });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 text-slate-800 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs tracking-widest text-white">Conectando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs tracking-widest">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
@@ -268,8 +268,8 @@ const RemoteControl = () => {
               <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 flex items-center justify-center gap-2 mt-4"><RefreshCw size={12}/> Limpiar Evaluación</button>
            </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in text-white text-slate-900">
-            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Actividad Himno</p>
+          <div className="space-y-6 animate-in fade-in text-white">
+            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic">Actividad Himno</p>
             <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors text-slate-100 placeholder-slate-600" placeholder="..." />
             <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-12 border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">ENVIAR</button>
           </div>
@@ -390,9 +390,22 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
     const cursoPath = curso.replace(/ /g, "_").toLowerCase();
     const originalNombres = NOMBRES_ESTUDIANTES[curso];
     const studentIdx = originalNombres.indexOf(selectedStudent.name);
+
     if (studentIdx !== -1) {
-        update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
+        update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { 
+            points: finalScore, 
+            played: true 
+        });
+
+        const fecha = new Date().toISOString().slice(0, 10);
+        set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), {
+          nombre: selectedStudent.name,
+          points: finalScore,
+          modo: modo,
+          timestamp: Date.now()
+        });
     }
+
     setSessionPoints(finalScore);
     setMetronomeOn(false);
     setGameState('summary');
@@ -469,7 +482,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'lobby' && (
             <div className="bg-white rounded-6xl p-12 sm:p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-125 animate-in zoom-in duration-500 text-slate-900">
               <div className="bg-red-50 p-10 rounded-full mb-10 text-red-600">{modo === 'polirritmia' ? <Drum size={100} className="animate-bounce" /> : <Star size={100} className="animate-pulse" fill="currentColor" />}</div>
-              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter italic">¿Quién sigue?</h2>
+              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter">¿Quién sigue?</h2>
               <button onClick={() => { initAudio(); startSpin(); }} className={`text-white text-3xl sm:text-6xl font-black px-12 sm:px-24 py-8 sm:py-12 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>GIRAR RULETA</button>
             </div>
           )}
@@ -482,21 +495,21 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
 
           {gameState === 'announced' && (
             <div className={`rounded-6xl p-12 sm:p-24 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-125 border-b-20 animate-in slide-in-from-bottom ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>
-              <p className="text-2xl sm:text-3xl font-bold opacity-70 uppercase tracking-widest mb-12 italic">Es el turno de:</p>
-              <h2 className="text-6xl sm:text-[7rem] font-black mb-16 sm:mb-24 drop-shadow-2xl uppercase leading-none italic">{selectedStudent?.name}</h2>
+              <p className="text-2xl sm:text-3xl font-bold opacity-70 uppercase tracking-widest mb-12 italic text-white">Es el turno de:</p>
+              <h2 className="text-6xl sm:text-[7rem] font-black mb-16 sm:mb-24 drop-shadow-2xl uppercase leading-none italic text-white">{selectedStudent?.name}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl text-slate-900">
                 <button onClick={() => setGameState('lobby')} className="bg-black/20 px-10 py-6 rounded-3xl font-black text-2xl border-4 border-white/20 italic text-white">AUSENTE</button>
-                <button onClick={startTurn} className="bg-white px-16 py-8 rounded-3xl font-black text-4xl shadow-2xl hover:scale-105 transition-transform italic uppercase text-slate-900 font-bold">¡A JUGAR!</button>
+                <button onClick={startTurn} className="bg-white px-16 py-8 rounded-3xl font-black text-4xl shadow-2xl hover:scale-105 transition-transform italic uppercase">¡A JUGAR!</button>
               </div>
             </div>
           )}
 
           {gameState === 'playing' && (
-            <div className="space-y-10 animate-in fade-in text-white">
+            <div className="space-y-10 animate-in fade-in">
               <div className={`p-8 sm:p-12 rounded-[4rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'polirritmia' ? 'bg-slate-900 border-blue-600' : 'bg-slate-900 border-red-600'}`}>
-                <div className="flex items-center gap-10">
+                <div className="flex items-center gap-10 text-white">
                     <div className={`${modo === 'polirritmia' ? 'bg-blue-600 shadow-blue-500/50' : 'bg-red-600 shadow-red-500/50'} w-16 h-16 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center shadow-2xl`}>{modo === 'polirritmia' ? <Drum size={48} /> : <Music size={48} />}</div>
-                    <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none">{selectedStudent?.name}</h3>
+                    <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none text-white">{selectedStudent?.name}</h3>
                 </div>
               </div>
 
@@ -519,8 +532,8 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
                 </div>
               ) : (
                 <div className="bg-white p-8 sm:p-20 rounded-6xl shadow-2xl min-h-100 flex flex-col justify-center border relative overflow-hidden text-center text-slate-900">
-                    <h4 className="absolute top-10 left-16 text-red-600 font-black text-xs uppercase tracking-widest flex items-center gap-4 animate-pulse"><div className="w-3 h-3 bg-red-600 rounded-full"></div> {currentSectionData?.title}</h4>
-                    <div className="space-y-10 text-slate-800">
+                    <h4 className="absolute top-10 left-16 text-red-600 font-black text-xs uppercase tracking-widest flex items-center gap-4 animate-pulse"><div className="w-3 h-3 bg-red-600 rounded-full text-red-600"></div> {currentSectionData?.title}</h4>
+                    <div className="space-y-10 text-slate-800 text-slate-900">
                     {currentSectionData?.lines.map((line, lIdx) => (
                         <p key={lIdx} className="text-3xl sm:text-5xl font-black flex flex-wrap gap-x-6 leading-[1.1] justify-center">
                         {line.map((word, wIdx) => (
@@ -532,8 +545,8 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-bottom text-white">
-                  <button onClick={savePoints} className={`py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>Finalizar Turno</button>
+              <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-bottom">
+                  <button onClick={savePoints} className={`text-white py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>Finalizar Turno</button>
               </div>
             </div>
           )}
@@ -541,7 +554,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'summary' && (
             <div className="bg-white rounded-6xl p-16 sm:p-32 text-center shadow-2xl min-h-150 border animate-in zoom-in border-slate-100 text-slate-900">
               <Award size={150} className="text-yellow-500 mb-12 mx-auto drop-shadow-xl animate-bounce" />
-              <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic tracking-tighter leading-none">{selectedStudent?.name}</h2>
+              <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic tracking-tighter leading-none text-slate-900">{selectedStudent?.name}</h2>
               <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[11rem] font-mono font-black mb-16 shadow-2xl leading-none">
                 {sessionPoints}
               </div>
@@ -592,6 +605,7 @@ const App = () => {
   if (role === "controller") return <RemoteControl />;
   if (!selectedCourse) return <CourseSelector onSelect={setSelectedCourse} />;
   
+  // FIX: Solo el curso constante ve el selector de categoría
   if (selectedCourse === CURSO_CON_POLIRRITMIA && !selectedCategory) {
     return <CategorySelector curso={selectedCourse} onSelectCategory={setSelectedCategory} onBack={() => setSelectedCourse(null)} />;
   }
