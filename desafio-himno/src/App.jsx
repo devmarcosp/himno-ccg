@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, 
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText
 } from 'lucide-react';
 
 // ==========================================
@@ -91,9 +91,6 @@ const generateBeatSequence = () => {
     return seq;
 };
 
-// ==========================================
-// 4. COMPONENTES VISUALES
-// ==========================================
 const MusicNote = ({ type, color = "currentColor" }) => {
   const baseClass = "flex items-center justify-center p-1";
   switch (type) {
@@ -185,6 +182,25 @@ const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
   </div>
 );
 
+const ModeSelector = ({ onSelect, onBack }) => (
+  <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white font-sans text-center">
+    <button onClick={onBack} className="mb-10 text-slate-500 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest mx-auto transition-colors"><RotateCcw size={16}/> Cambiar Actividad</button>
+    <h2 className="text-5xl font-black mb-16 italic uppercase tracking-tighter">Configuración de Canto</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl w-full text-slate-900 font-black">
+      <button onClick={() => onSelect('completo')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-200">
+        <div className="bg-indigo-100 p-6 rounded-full text-indigo-600"><ListMusic size={60} /></div>
+        <span className="text-3xl uppercase italic tracking-tighter">CANTO COMPLETO</span>
+        <p className="text-xs font-bold text-slate-400">Evalúa toda la letra de corrido</p>
+      </button>
+      <button onClick={() => onSelect('seccion')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all flex flex-col items-center gap-6 border-b-15 border-slate-200">
+        <div className="bg-orange-100 p-6 rounded-full text-orange-600"><FileText size={60} /></div>
+        <span className="text-3xl uppercase italic tracking-tighter">CANTA SECCIÓN</span>
+        <p className="text-xs font-bold text-slate-400">Evalúa una estrofa al azar</p>
+      </button>
+    </div>
+  </div>
+);
+
 // ==========================================
 // VISTA: CONTROL REMOTO (PARA CELULAR)
 // ==========================================
@@ -196,10 +212,7 @@ const RemoteControl = () => {
   const [status, setStatus] = useState("Conectado");
 
   useEffect(() => {
-    const unsubEstado = onValue(ref(db, 'estado'), (snap) => {
-        const val = snap.val();
-        setAppState(val);
-    });
+    const unsubEstado = onValue(ref(db, 'estado'), (snap) => setAppState(snap.val()));
     const unsubRemoto = onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
     return () => { unsubEstado(); unsubRemoto(); };
   }, []);
@@ -218,7 +231,7 @@ const RemoteControl = () => {
       .then(() => { setStatus("OK ✓"); setCurrentWord(""); setTimeout(() => setStatus("Conectado"), 1000); });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic font-black uppercase text-xs tracking-widest text-white">Conectando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 text-center font-sans"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs tracking-widest">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
@@ -257,7 +270,7 @@ const RemoteControl = () => {
            </div>
         ) : (
           <div className="space-y-6 animate-in fade-in text-white">
-            <p className="font-black uppercase text-[10px] tracking-widest text-center italic text-white">Actividad Letra</p>
+            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Actividad Letra</p>
             <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors placeholder-slate-600" placeholder="..." />
             <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-12 border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">ENVIAR</button>
           </div>
@@ -271,7 +284,7 @@ const RemoteControl = () => {
 // ==========================================
 // VISTA: PANTALLA PRINCIPAL PROYECTOR
 // ==========================================
-const MainDisplay = ({ curso, modo = 'himno' }) => {
+const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
   const [students, setStudents] = useState([]);
   const [gameState, setGameState] = useState('lobby'); 
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -333,15 +346,25 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
         set(ref(db, 'remoto/evalPol'), reset);
     } else {
         const sourceEstructura = modo === 'himno' ? HIMNO_ESTRUCTURA : KARAOKE_ESTRUCTURA;
-        const choice = shuffle(sourceEstructura)[0];
-        let setOfSections = [choice];
-        if (modo === 'himno' && ['c1', 'c2', 'final'].includes(choice.id)) {
-            setOfSections = [shuffle(HIMNO_ESTRUCTURA.filter(s => s.id.startsWith('e')))[0], choice];
+        
+        let targetSections = [];
+        let titleDisplay = "";
+
+        if (singingMode === 'completo') {
+            targetSections = sourceEstructura;
+            titleDisplay = "Canto Completo";
+        } else {
+            const choice = shuffle(sourceEstructura)[0];
+            targetSections = [choice];
+            if (modo === 'himno' && ['c1', 'c2', 'final'].includes(choice.id)) {
+                targetSections = [shuffle(HIMNO_ESTRUCTURA.filter(s => s.id.startsWith('e')))[0], choice];
+            }
+            titleDisplay = targetSections.map(s => s.title).join(" + ");
         }
 
         setCurrentSectionData({
-            title: setOfSections.map(s => s.title).join(" + "),
-            lines: setOfSections.flatMap(s => s.lines).map(line => {
+            title: titleDisplay,
+            lines: targetSections.flatMap(s => s.lines).map(line => {
                 const words = line.split(' ');
                 const eligibleIndices = words
                   .map((w, i) => (w.replace(/[¡!¿?.,;:"']/g, "").length >= 3 ? i : -1))
@@ -380,7 +403,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
         update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
         const fecha = new Date().toISOString().slice(0, 10);
         set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), {
-          nombre: selectedStudent.name, points: finalScore, modo: modo, timestamp: Date.now()
+          nombre: selectedStudent.name, points: finalScore, modo: `${modo}_${singingMode}`, timestamp: Date.now()
         });
     }
     setSessionPoints(finalScore);
@@ -418,14 +441,12 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
   }, [curso, modo]);
 
   useEffect(() => {
-    const evalRef = ref(db, 'remoto/evalPol');
-    const msgRef = ref(db, 'remoto/mensaje');
-    const unsubEval = onValue(evalRef, (snap) => { if(snap.val()) setEvalPol(snap.val()); });
-    const unsubMsg = onValue(msgRef, (snapshot) => {
+    const unsubEval = onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
+    const unsubMsg = onValue(ref(db, 'remoto/mensaje'), (snapshot) => {
       const data = snapshot.val();
       if (data && data.texto && data.timestamp > turnStartTime.current) {
         handleWordValidation(data.texto);
-        remove(msgRef);
+        remove(ref(db, 'remoto/mensaje'));
       }
     });
     return () => { unsubEval(); unsubMsg(); };
@@ -435,7 +456,9 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
     <div className="min-h-screen bg-[#f1f5f9] font-sans p-4 sm:p-8 overflow-x-hidden text-slate-900">
       <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-6xl flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-4 text-slate-900">
         <div className="flex items-center gap-6">
-          <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">{modo === 'polirritmia' ? <Drum size={32}/> : (modo === 'himno' ? <Music size={32} /> : <Mic size={32}/>)}</div>
+          <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">
+            {modo === 'polirritmia' ? <Drum size={32}/> : (modo === 'himno' ? <Music size={32} /> : <Mic size={32}/>)}
+          </div>
           <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none">CCG-INTERACTIVO</h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
         </div>
         <div className="flex items-center gap-4 text-slate-900">
@@ -473,7 +496,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
             <div className={`rounded-6xl p-12 sm:p-24 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-125 border-b-20 animate-in slide-in-from-bottom ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : (modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900')}`}>
               <p className="text-2xl sm:text-3xl font-bold opacity-70 uppercase tracking-widest mb-12 italic text-white">Es el turno de:</p>
               <h2 className="text-6xl sm:text-[7rem] font-black mb-16 sm:mb-24 drop-shadow-2xl uppercase leading-none italic text-center">{selectedStudent?.name}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl text-slate-900">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl text-slate-900 font-black">
                 <button onClick={() => setGameState('lobby')} className="bg-black/20 px-10 py-6 rounded-3xl font-black text-2xl border-4 border-white/20 italic text-white">AUSENTE</button>
                 <button onClick={startTurn} className="bg-white px-16 py-8 rounded-3xl font-black text-4xl shadow-2xl hover:scale-105 transition-transform italic uppercase text-slate-900">¡A JUGAR!</button>
               </div>
@@ -488,6 +511,10 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
                         {modo === 'polirritmia' ? <Drum size={48} /> : (modo === 'himno' ? <Music size={48} /> : <Mic size={48}/>)}
                     </div>
                     <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none text-white">{selectedStudent?.name}</h3>
+                </div>
+                <div className="bg-white/10 px-6 py-3 rounded-2xl border border-white/20">
+                  <span className="text-[10px] font-black uppercase opacity-70 block">Evaluando</span>
+                  <span className="text-xl font-black italic uppercase">{singingMode === 'completo' ? 'Canción Completa' : 'Sección Aleatoria'}</span>
                 </div>
               </div>
 
@@ -534,7 +561,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'summary' && (
             <div className="bg-white rounded-6xl p-16 sm:p-32 text-center shadow-2xl min-h-150 border animate-in zoom-in border-slate-100 text-slate-900">
               <Award size={150} className="text-yellow-500 mb-12 mx-auto drop-shadow-xl animate-bounce" />
-              <h2 className="text-5xl sm:text-[6rem] font-black mb-12 uppercase italic tracking-tighter leading-none text-slate-900">{selectedStudent?.name}</h2>
+              <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic tracking-tighter leading-none">{selectedStudent?.name}</h2>
               <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[11rem] font-mono font-black mb-16 shadow-2xl leading-none">
                 {sessionPoints}
               </div>
@@ -614,6 +641,7 @@ const App = () => {
   });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedMode, setSelectedMode] = useState(null);
 
   if (role === "controller") return <RemoteControl />;
   if (!selectedCourse) return <CourseSelector onSelect={setSelectedCourse} />;
@@ -621,8 +649,13 @@ const App = () => {
   if (!selectedCategory) {
     return <CategorySelector curso={selectedCourse} onSelectCategory={setSelectedCategory} onBack={() => setSelectedCourse(null)} />;
   }
+
+  // Si es canto (Himno o Karaoke) y no hay modo elegido, mostramos selector de modo
+  if ((selectedCategory === 'himno' || selectedCategory === 'karaoke') && !selectedMode) {
+    return <ModeSelector onSelect={setSelectedMode} onBack={() => setSelectedCategory(null)} />;
+  }
   
-  return <MainDisplay curso={selectedCourse} modo={selectedCategory} />;
+  return <MainDisplay curso={selectedCourse} modo={selectedCategory} singingMode={selectedMode} />;
 };
 
 export default App;
