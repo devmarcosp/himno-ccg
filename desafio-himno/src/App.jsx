@@ -3,8 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set, update, remove } from "firebase/database";
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
-  Smartphone, ChevronRight, School, Drum, Hand, LayoutGrid, 
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic
+  ChevronRight, School, Drum, Hand, LayoutGrid, 
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, Volume2
 } from 'lucide-react';
 
 // ==========================================
@@ -197,7 +197,7 @@ const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
 );
 
 // ==========================================
-// VISTA: CONTROL REMOTO (CELULAR)
+// VISTA: CONTROL REMOTO (PARA CELULAR)
 // ==========================================
 const RemoteControl = () => {
   const [remoteView, setRemoteView] = useState("menu");
@@ -217,7 +217,6 @@ const RemoteControl = () => {
         
         if (val && !hasInitializedNav.current) {
             hasInitializedNav.current = true;
-            // No forzamos vista Himno si es 6 Basico porque el tiene menu
             if (val.cursoActual !== CURSO_CON_POLIRRITMIA) {
                 setRemoteView("himno");
             }
@@ -269,12 +268,12 @@ const RemoteControl = () => {
               <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic">Evaluación Polirritmia:</p>
               <div className="grid grid-cols-1 gap-3">
                  {evalPol.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-2 gap-3">
+                    <div key={idx} className="grid grid-cols-2 gap-3 text-white">
                         <button onClick={() => toggleEval(idx, 'L')} className={`py-7 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.L === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.L ? <Check size={16}/> : <X size={16}/>} IZQ {idx + 1}
+                            {row.L ? "IZQ " + (idx + 1) + " OK" : "IZQ " + (idx + 1) + " ERROR"}
                         </button>
                         <button onClick={() => toggleEval(idx, 'R')} className={`py-7 rounded-2xl font-black border-b-8 transition-all flex items-center justify-center gap-2 ${row.R === true ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>
-                            {row.R ? <Check size={16}/> : <X size={16}/>} DER {idx + 1}
+                            {row.R ? "DER " + (idx + 1) + " OK" : "DER " + (idx + 1) + " ERROR"}
                         </button>
                     </div>
                  ))}
@@ -282,8 +281,8 @@ const RemoteControl = () => {
               <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 flex items-center justify-center gap-2 mt-4"><RefreshCw size={12}/> Limpiar Evaluación</button>
            </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in">
-            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Letra Himno / Karaoke</p>
+          <div className="space-y-6 animate-in fade-in text-slate-900">
+            <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest text-center italic text-white">Actividad Letra</p>
             <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-4xl font-black p-6 rounded-2xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 transition-colors text-slate-100 placeholder-slate-600" placeholder="..." />
             <button onClick={sendWord} className="w-full bg-red-600 text-white text-2xl font-black py-6 rounded-2xl border-b-12 border-red-900 uppercase active:translate-y-1 transition-all shadow-xl">ENVIAR</button>
           </div>
@@ -308,6 +307,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
   const [beat, setBeat] = useState(false);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [evalPol, setEvalPol] = useState(Array(4).fill(null).map(() => ({ L: true, R: true })));
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const audioCtxRef = useRef(null);
   const turnStartTime = useRef(Date.now());
   const audioRef = useRef(null);
@@ -335,6 +335,7 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
   }, [currentSectionData, gameState]);
 
   const startSpin = () => {
+    if (gameState === 'spinning') return; // FIX: Evitar doble trigger
     initAudio();
     const available = students.filter(s => !s.played);
     if (available.length === 0) return alert("¡Curso Finalizado!");
@@ -342,7 +343,10 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
     let count = 0;
     const interval = setInterval(() => {
       setSelectedStudent(available[Math.floor(Math.random() * available.length)]);
-      if (count++ >= 35) { clearInterval(interval); setGameState('announced'); }
+      if (count++ >= 35) { 
+        clearInterval(interval); 
+        setGameState('announced'); 
+      }
     }, 60);
   };
 
@@ -359,8 +363,6 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
     } else {
         const sourceEstructura = modo === 'himno' ? HIMNO_ESTRUCTURA : KARAOKE_ESTRUCTURA;
         const choice = shuffle(sourceEstructura)[0];
-        
-        // Para Himno, si sale coro pegamos estrofa. Para Karaoke, usamos secciones individuales.
         let setOfSections = [choice];
         if (modo === 'himno' && ['c1', 'c2', 'final'].includes(choice.id)) {
             setOfSections = [shuffle(HIMNO_ESTRUCTURA.filter(s => s.id.startsWith('e')))[0], choice];
@@ -370,57 +372,57 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
             title: setOfSections.map(s => s.title).join(" + "),
             lines: setOfSections.flatMap(s => s.lines).map(line => {
                 const words = line.split(' ');
-                const indices = new Set();
-                while(indices.size < Math.min(words.length - 1, 2)) indices.add(Math.floor(Math.random() * words.length));
-                return words.map((text, idx) => ({ text, isHidden: indices.has(idx), isRevealed: false, status: null }));
+                // FILTRO: Solo ocultar palabras >= 3 caracteres
+                const eligibleIndices = words
+                  .map((w, i) => (w.replace(/[¡!¿?.,;:"']/g, "").length >= 3 ? i : -1))
+                  .filter(i => i !== -1);
+                
+                // OCULTAR MÁS: Aproximadamente el 50% de las elegibles
+                const hideCount = Math.ceil(eligibleIndices.length * 0.5);
+                const shuffledEligible = shuffle(eligibleIndices);
+                const indicesToHide = new Set(shuffledEligible.slice(0, hideCount));
+
+                return words.map((text, idx) => ({ 
+                  text, 
+                  isHidden: indicesToHide.has(idx), 
+                  isRevealed: false, 
+                  status: null 
+                }));
             })
         });
     }
     setGameState('playing');
   };
 
-  const calculateFinalScore = () => {
-      if (modo === 'polirritmia') {
-          let hits = 0;
-          evalPol.forEach(r => { if(r.L === true) hits++; if(r.R === true) hits++; });
-          return Math.round((hits / 8) * 100);
-      }
-      if (!currentSectionData) return 0;
-      let totalHidden = 0, correctOnes = 0;
-      currentSectionData.lines.forEach(l => l.forEach(w => {
-          if (w.isHidden) { totalHidden++; if (w.status === 'correct') correctOnes++; }
-      }));
-      return totalHidden > 0 ? Math.round((correctOnes / totalHidden) * 100) : 100;
-  };
-
   const savePoints = () => {
-    const finalScore = calculateFinalScore();
+    const finalScore = (modo === 'polirritmia') 
+      ? Math.round((evalPol.reduce((acc, r) => acc + (r.L?1:0) + (r.R?1:0), 0) / 8) * 100)
+      : (() => {
+          let total = 0, correct = 0;
+          currentSectionData?.lines.forEach(l => l.forEach(w => {
+            if (w.isHidden) { total++; if (w.status === 'correct') correct++; }
+          }));
+          return total > 0 ? Math.round((correct / total) * 100) : 100;
+        })();
+
     const cursoPath = curso.replace(/ /g, "_").toLowerCase();
-    const originalNombres = NOMBRES_ESTUDIANTES[curso];
-    const studentIdx = originalNombres.indexOf(selectedStudent.name);
+    const studentIdx = NOMBRES_ESTUDIANTES[curso].indexOf(selectedStudent.name);
 
     if (studentIdx !== -1) {
         update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
         const fecha = new Date().toISOString().slice(0, 10);
         set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), {
-          nombre: selectedStudent.name,
-          points: finalScore,
-          modo: modo,
-          timestamp: Date.now()
+          nombre: selectedStudent.name, points: finalScore, modo: modo, timestamp: Date.now()
         });
     }
-
     setSessionPoints(finalScore);
     setMetronomeOn(false);
+    if(audioRef.current) { audioRef.current.pause(); setAudioPlaying(false); }
     setGameState('summary');
   };
 
-  // --- EFFECT: METRONOMO ---
   useEffect(() => {
-    if (!metronomeOn || gameState !== 'playing') { 
-      setBeat(false); 
-      return; 
-    }
+    if (!metronomeOn || gameState !== 'playing') { setBeat(false); return; }
     const tick = () => {
       setBeat(prev => !prev);
       if (!audioCtxRef.current) return;
@@ -439,33 +441,25 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
     return () => clearInterval(interval);
   }, [metronomeOn, gameState, bpm]);
 
-  // --- EFFECT: SYNC ESTADO Y ESTUDIANTES ---
   useEffect(() => {
     update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo });
     if (!curso) return;
     const cursoPath = curso.replace(/ /g, "_").toLowerCase();
-    const studentsRef = ref(db, `cursos/${cursoPath}/estudiantes`);
-    const unsub = onValue(studentsRef, (snap) => {
+    const unsub = onValue(ref(db, `cursos/${cursoPath}/estudiantes`), (snap) => {
         const data = snap.val();
         if (data) setStudents(Object.values(data));
-        else {
-            const initial = (NOMBRES_ESTUDIANTES[curso] || []).map((n, i) => ({ id: i + 1, name: n, points: 0, played: false }));
-            set(studentsRef, initial);
-        }
+        else set(ref(db, `cursos/${cursoPath}/estudiantes`), (NOMBRES_ESTUDIANTES[curso] || []).map((n, i) => ({ id: i + 1, name: n, points: 0, played: false })));
     });
     return () => unsub();
   }, [curso, modo]);
 
-  // --- EFFECT: ESCUCHA REMOTA ---
   useEffect(() => {
-    const evalRef = ref(db, 'remoto/evalPol');
-    const msgRef = ref(db, 'remoto/mensaje');
-    const unsubEval = onValue(evalRef, (snap) => { if(snap.val()) setEvalPol(snap.val()); });
-    const unsubMsg = onValue(msgRef, (snapshot) => {
+    const unsubEval = onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
+    const unsubMsg = onValue(ref(db, 'remoto/mensaje'), (snapshot) => {
       const data = snapshot.val();
       if (data && data.texto && data.timestamp > turnStartTime.current) {
         handleWordValidation(data.texto);
-        remove(msgRef);
+        remove(ref(db, 'remoto/mensaje'));
       }
     });
     return () => { unsubEval(); unsubMsg(); };
@@ -473,13 +467,11 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans p-4 sm:p-8 overflow-x-hidden text-slate-900">
-      <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/voy-navegando.mp3"} />
+      <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/voy-navegando.mp3"} onEnded={() => setAudioPlaying(false)} />
       
       <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-6xl flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-4">
         <div className="flex items-center gap-6">
-          <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">
-            {modo === 'polirritmia' ? <Drum size={32}/> : (modo === 'himno' ? <Music size={32} /> : <Mic size={32}/>)}
-          </div>
+          <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">{modo === 'polirritmia' ? <Drum size={32}/> : (modo === 'himno' ? <Music size={32} /> : <Mic size={32}/>)}</div>
           <div><h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none">CCG-INTERACTIVO</h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mt-2 italic">{curso}</p></div>
         </div>
         <div className="flex items-center gap-4">
@@ -501,21 +493,25 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
         <div className="lg:col-span-8 order-1">
           {gameState === 'lobby' && (
             <div className="bg-white rounded-6xl p-12 sm:p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-125 animate-in zoom-in duration-500">
-              <div className="bg-red-50 p-10 rounded-full mb-10 text-red-600">
-                {modo === 'polirritmia' ? <Drum size={100} className="animate-bounce" /> : <Star size={100} className="animate-pulse" fill="currentColor" />}
-              </div>
-              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter">¿Quién sigue?</h2>
+              <div className="bg-red-50 p-10 rounded-full mb-10 text-red-600">{modo === 'polirritmia' ? <Drum size={100} className="animate-bounce" /> : <Star size={100} className="animate-pulse" fill="currentColor" />}</div>
+              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-12 uppercase italic tracking-tighter italic">¿Quién sigue?</h2>
               <button onClick={startSpin} className={`text-white text-3xl sm:text-6xl font-black px-12 sm:px-24 py-8 sm:py-12 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-red-600 border-red-900'}`}>GIRAR RULETA</button>
+            </div>
+          )}
+
+          {gameState === 'spinning' && (
+            <div className="bg-slate-900 rounded-6xl p-12 sm:p-24 text-center flex flex-col items-center justify-center min-h-125 border-15 border-slate-800 shadow-2xl overflow-hidden text-white">
+              <h2 className="text-5xl sm:text-[8rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10 text-center">{selectedStudent?.name}</h2>
             </div>
           )}
 
           {gameState === 'announced' && (
             <div className={`rounded-6xl p-12 sm:p-24 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-125 border-b-20 animate-in slide-in-from-bottom ${modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : (modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900')}`}>
               <p className="text-2xl sm:text-3xl font-bold opacity-70 uppercase tracking-widest mb-12 italic">Es el turno de:</p>
-              <h2 className="text-6xl sm:text-[7rem] font-black mb-16 sm:mb-24 drop-shadow-2xl uppercase leading-none italic">{selectedStudent?.name}</h2>
+              <h2 className="text-6xl sm:text-[7rem] font-black mb-16 sm:mb-24 drop-shadow-2xl uppercase leading-none italic text-center">{selectedStudent?.name}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl text-slate-900">
                 <button onClick={() => setGameState('lobby')} className="bg-black/20 px-10 py-6 rounded-3xl font-black text-2xl border-4 border-white/20 italic text-white">AUSENTE</button>
-                <button onClick={startTurn} className="bg-white px-16 py-8 rounded-3xl font-black text-4xl shadow-2xl hover:scale-105 transition-transform italic uppercase">¡A JUGAR!</button>
+                <button onClick={startTurn} className="bg-white px-16 py-8 rounded-3xl font-black text-4xl shadow-2xl hover:scale-105 transition-transform italic uppercase text-slate-900 font-bold">¡A JUGAR!</button>
               </div>
             </div>
           )}
@@ -523,15 +519,12 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           {gameState === 'playing' && (
             <div className="space-y-10 animate-in fade-in">
               <div className={`p-8 sm:p-12 rounded-[4rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'polirritmia' ? 'bg-slate-900 border-blue-600' : (modo === 'himno' ? 'bg-slate-900 border-red-600' : 'bg-slate-900 border-green-600')}`}>
-                <div className="flex items-center gap-10 text-white">
-                    <div className={`${modo === 'polirritmia' ? 'bg-blue-600' : (modo === 'himno' ? 'bg-red-600' : 'bg-green-600')} w-16 h-16 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center shadow-2xl`}>
+                <div className="flex items-center gap-10">
+                    <div className={`${modo === 'polirritmia' ? 'bg-blue-600 shadow-blue-500/50' : 'bg-red-600 shadow-red-500/50'} w-16 h-16 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center shadow-2xl text-white`}>
                         {modo === 'polirritmia' ? <Drum size={48} /> : (modo === 'himno' ? <Music size={48} /> : <Mic size={48}/>)}
                     </div>
-                    <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none">{selectedStudent?.name}</h3>
+                    <h3 className="text-2xl sm:text-5xl font-black uppercase italic truncate leading-none text-white">{selectedStudent?.name}</h3>
                 </div>
-                <button onClick={() => { if(audioRef.current.paused) audioRef.current.play(); else audioRef.current.pause(); }} className="p-4 bg-white/10 rounded-full hover:bg-white/20 text-white">
-                    <Music size={32} />
-                </button>
               </div>
 
               {modo === 'polirritmia' ? (
@@ -552,11 +545,11 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
                     ))}
                 </div>
               ) : (
-                <div className="bg-white p-8 sm:p-20 rounded-6xl shadow-2xl min-h-100 flex flex-col justify-center border relative overflow-hidden text-center text-slate-800">
+                <div className="bg-white p-8 sm:p-20 rounded-6xl shadow-2xl min-h-100 flex flex-col justify-center border relative overflow-hidden text-center">
                     <h4 className={`absolute top-10 left-16 font-black text-xs uppercase tracking-widest flex items-center gap-4 animate-pulse ${modo === 'himno' ? 'text-red-600' : 'text-green-600'}`}>
                         <div className={`w-3 h-3 rounded-full ${modo === 'himno' ? 'bg-red-600' : 'bg-green-600'}`}></div> {currentSectionData?.title}
                     </h4>
-                    <div className="space-y-10">
+                    <div className="space-y-10 text-slate-800">
                     {currentSectionData?.lines.map((line, lIdx) => (
                         <p key={lIdx} className="text-3xl sm:text-5xl font-black flex flex-wrap gap-x-6 leading-[1.1] justify-center">
                         {line.map((word, wIdx) => (
@@ -575,23 +568,46 @@ const MainDisplay = ({ curso, modo = 'himno' }) => {
           )}
 
           {gameState === 'summary' && (
-            <div className="bg-white rounded-6xl p-16 sm:p-32 text-center shadow-2xl min-h-150 border animate-in zoom-in border-slate-100">
+            <div className="bg-white rounded-6xl p-16 sm:p-32 text-center shadow-2xl min-h-150 border animate-in zoom-in border-slate-100 text-slate-900">
               <Award size={150} className="text-yellow-500 mb-12 mx-auto drop-shadow-xl animate-bounce" />
               <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic tracking-tighter leading-none">{selectedStudent?.name}</h2>
               <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[11rem] font-mono font-black mb-16 shadow-2xl leading-none">
                 {sessionPoints}
               </div>
-              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); if(audioRef.current) audioRef.current.pause(); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform">Siguiente</button>
+              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform">Siguiente</button>
             </div>
           )}
         </div>
 
+        {/* RANKING CON PANEL DE AUDIO KARAOKE */}
         <div className="lg:col-span-4 order-2 text-slate-900">
-          <div className="bg-white rounded-[3rem] sm:rounded-[4rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32">
+          {modo === 'karaoke' && (
+            <div className="bg-green-600 rounded-[3rem] p-6 mb-6 shadow-2xl border-b-8 border-green-800 text-white animate-in slide-in-from-right">
+              <p className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-80">Control de Audio</p>
+              <div className="flex items-center justify-between gap-4">
+                <button 
+                  onClick={() => {
+                    if (audioRef.current.paused) { audioRef.current.play(); setAudioPlaying(true); }
+                    else { audioRef.current.pause(); setAudioPlaying(false); }
+                  }}
+                  className={`p-5 rounded-full transition-all border-b-4 flex items-center gap-3 ${audioPlaying ? 'bg-white text-green-600 border-green-200' : 'bg-green-800 text-white border-green-950'}`}
+                >
+                  {audioPlaying ? <Square fill="currentColor" size={24}/> : <PlayCircle fill="currentColor" size={24}/>}
+                  <span className="font-black text-lg">{audioPlaying ? 'PAUSA' : 'PLAY'}</span>
+                </button>
+                <div className="bg-green-700/50 p-4 rounded-2xl flex items-center gap-2">
+                  <Volume2 size={20} className="animate-pulse" />
+                  <span className="text-[10px] font-black uppercase leading-tight">Voy<br/>Navegando</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-[3rem] sm:rounded-[4rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-10">
             <div className="p-8 sm:p-10 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600">
               <h3 className="font-black uppercase text-2xl italic flex items-center gap-4"><Trophy className="text-yellow-400" size={32}/> RANKING</h3>
             </div>
-            <div className="max-h-125 lg:max-h-187.5 overflow-y-auto scrollbar-hide bg-white">
+            <div className="max-h-125 lg:max-h-[70vh] overflow-y-auto bg-white">
               {students
                 .sort((a,b) => (b.points || 0) - (a.points || 0) || a.id - b.id)
                 .map((s, idx) => (
