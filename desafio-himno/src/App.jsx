@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// 1. CONFIGURACIÓN
+// 1. CONFIGURACIÓN FIREBASE
 // ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyAENUFLOZfeTu7D5u3DcJXfOtYtzU0HOVw",
@@ -24,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const CURSO_CON_POLIRRITMIA = "6° Básico";
+const YOUTUBE_ID_KARAOKE = "qt_U4mFJHUU"; 
 
 // ==========================================
 // 2. ESTRUCTURAS DE LETRAS
@@ -36,13 +37,13 @@ const HIMNO_ESTRUCTURA = [
 
 const KARAOKE_ESTRUCTURA = [
   { id: 'k1', title: 'Intro Rapa Nui', lines: ['Hoe tatou ite vaka!!! …Huiiii', 'Aroto i te hetu´u, a au i oho mai ai', 'E koro ko reka ana au i tooku oho ki hiva'] },
-  { id: 'k2', title: 'Verso 1', lines: ['Voy navegando, navegando', 'Voy navegando muy feliz', 'Llevo en mi bote muchas frutas', 'Y todo lo que aprendí…'] },
-  { id: 'k3', title: 'Verso 2', lines: ['Dejé mi tierra y a mis hermanos', 'Por conocer más de mi país', 'No soy del norte ni del sur', 'Porque yo soy de Rapa Nui'] },
+  { id: 'k2', title: 'Verso 1 (0:23)', lines: ['Voy navegando, navegando', 'Voy navegando muy feliz', 'Llevo en mi bote muchas frutas', 'Y todo lo que aprendí…'] },
+  { id: 'k3', title: 'Verso 2 (0:55)', lines: ['Dejé mi tierra y a mis hermanos', 'Por conocer más de mi país', 'No soy del norte ni del sur', 'Porque yo soy de Rapa Nui'] },
   { id: 'k4', title: 'Puente', lines: ['Tahi rua, toru, ha', 'EEEEE A HE HOI´ EEEE'] },
   { id: 'k5', title: 'Rapa Nui 2', lines: ['A roto ite hetu´u, a au i oho mai ai', 'E koro ko reka ana tooku oho ki hiva eeeeee'] },
-  { id: 'k6', title: 'Verso 3', lines: ['Por las estrellas me voy guiando como lo hizo mi abuelo ayer', 'Me prometí venir un día y al conti a conocer…'] },
-  { id: 'k7', title: 'Verso 4', lines: ['El sol muy fuerte está quemando y yo no paro de remar', 'Mi corazón está saltando, pero en mi alma fuerza y mas…'] },
-  { id: 'k8', title: 'Climax', lines: ['Ya muchas noches han pasado y el cielo estrellado está', 'Veo unas luces a lo lejos… Al continente al fin llegué'] }
+  { id: 'k6', title: 'Verso 3 (1:32)', lines: ['Por las estrellas me voy guiando como lo hizo mi abuelo ayer', 'Me prometí venir un día y al conti a conocer…'] },
+  { id: 'k7', title: 'Verso 4 (2:18)', lines: ['El sol muy fuerte está quemando y yo no paro de remar', 'Mi corazón está saltando, pero en mi alma fuerza y mas…'] },
+  { id: 'k8', title: 'Climax (2:42)', lines: ['Ya muchas noches han pasado y el cielo estrellado está', 'Veo unas luces a lo lejos… Al continente al fin llegué'] }
 ];
 
 const NOMBRES_ESTUDIANTES = {
@@ -57,21 +58,47 @@ const NOMBRES_ESTUDIANTES = {
 };
 
 const CURSOS = Object.keys(NOMBRES_ESTUDIANTES);
-
 const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
 const normalize = (str) => (!str ? "" : str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¡!¿?.,;:"']/g, "").trim().toUpperCase());
 
 // ==========================================
-// VISTAS NAVEGACIÓN
+// 3. COMPONENTES DE VISTA
 // ==========================================
+
+const GlobalNavbar = ({ curso, actividad, onBack, onHome }) => (
+  <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-[3rem] flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-8 gap-6 mt-6 animate-in slide-in-from-top">
+    <div className="flex items-center gap-6">
+      <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">
+        {actividad === 'polirritmia' ? <Drum size={32}/> : <Music size={32} />}
+      </div>
+      <div>
+        <h1 className="text-2xl sm:text-4xl font-black uppercase italic tracking-tighter leading-none text-slate-900">CCG-INTERACTIVO</h1>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] italic mt-1">
+          {curso} {actividad ? `| ${actividad.toUpperCase()}` : ''}
+        </p>
+      </div>
+    </div>
+    <div className="flex items-center gap-4">
+        <button onClick={onHome} className="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-red-600 hover:text-white transition-all shadow-sm flex items-center gap-2 px-6 font-black uppercase text-xs">
+            <Home size={20}/> Inicio
+        </button>
+        <button onClick={onBack} className="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm flex items-center gap-2 px-6 font-black uppercase text-xs">
+            <ArrowLeft size={20}/> Atrás
+        </button>
+        <div className="w-[2px] h-8 bg-slate-200 mx-2"></div>
+        <button onClick={() => window.location.reload()} className="bg-slate-50 p-4 rounded-full text-slate-300 hover:text-red-600 border border-slate-200 transition-all shadow-sm"><RotateCcw size={28}/></button>
+    </div>
+  </nav>
+);
+
 const CourseSelector = ({ onSelect }) => (
   <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 font-sans">
     <div className="bg-slate-800 p-12 rounded-[3rem] border-2 border-slate-700 shadow-2xl max-w-4xl w-full text-center text-white">
       <div className="bg-red-600/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner text-red-500"><School size={40} /></div>
-      <h2 className="text-3xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter leading-none">CCG-INTERACTIVO</h2>
+      <h2 className="text-3xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter">CCG-INTERACTIVO</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
         {CURSOS.map(curso => (
-          <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 py-5 px-8 rounded-2xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
+          <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 text-white py-5 px-8 rounded-2xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
             <span className="text-xl italic font-black">{curso}</span>
             <ChevronRight className="group-hover:translate-x-2 transition-transform" />
           </button>
@@ -81,49 +108,38 @@ const CourseSelector = ({ onSelect }) => (
   </div>
 );
 
-const CategorySelector = ({ curso, onSelectCategory, onBack }) => (
-  <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white font-sans text-center">
-    <button onClick={onBack} className="mb-12 text-slate-500 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest mx-auto transition-colors"><RotateCcw size={16}/> Volver</button>
-    <h2 className="text-6xl font-black mb-4 italic uppercase tracking-tighter">{curso}</h2>
+const CategorySelector = ({ curso, onSelectCategory }) => (
+  <div className="flex flex-col items-center justify-center p-6 text-slate-900 font-sans text-center">
+    <h2 className="text-5xl font-black mb-4 italic uppercase tracking-tighter">{curso}</h2>
     <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600 underline-offset-8">Actividad</p>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-6xl w-full text-slate-900 font-black">
-      <button onClick={() => onSelectCategory('himno')} className="bg-white p-12 rounded-[3.5rem] shadow-2xl hover:scale-105 transition-all border-b-15 border-slate-200">
-        <div className="bg-red-100 p-8 rounded-full text-red-600"><Music size={70} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter">HIMNO</span>
-      </button>
-      <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-12 rounded-[3.5rem] shadow-2xl hover:scale-105 transition-all border-b-15 border-slate-200">
-        <div className="bg-green-100 p-8 rounded-full text-green-600"><Mic size={70} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter">KARAOKE</span>
-      </button>
-      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-12 rounded-[3.5rem] shadow-2xl hover:scale-105 transition-all border-b-15 border-slate-950 border-2 border-slate-700">
-        <div className="bg-blue-600 p-8 rounded-full text-white"><LayoutGrid size={70} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter">POLIRRITMIA</span>
-      </button>)}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl w-full text-slate-900 font-black">
+      <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">HIMNO</span></button>
+      <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">KARAOKE</span></button>
+      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-white">POLIRRITMIA</span></button>)}
     </div>
   </div>
 );
 
-const ModeSelector = ({ onSelect, onBack }) => (
-  <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white font-sans text-center">
-    <button onClick={onBack} className="mb-12 text-slate-500 hover:text-white flex items-center gap-2 font-black uppercase text-xs tracking-widest mx-auto transition-colors"><RotateCcw size={16}/> Cambiar Actividad</button>
-    <h2 className="text-6xl font-black mb-20 italic uppercase tracking-tighter">Configuración</h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 max-w-5xl w-full text-slate-900 font-black text-center">
-      <button onClick={() => onSelect('completo')} className="bg-white p-14 rounded-[4rem] shadow-2xl hover:scale-105 transition-all border-b-15 border-slate-200">
-        <div className="bg-indigo-100 p-8 rounded-full text-indigo-600 mx-auto mb-6"><ListMusic size={80} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter block mb-2">CANTO COMPLETO</span>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Avance por evaluación</p>
+const ModeSelector = ({ onSelect }) => (
+  <div className="flex flex-col items-center justify-center p-6 text-slate-900 font-sans text-center">
+    <h2 className="text-5xl font-black mb-16 italic uppercase tracking-tighter">Configuración</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 max-w-4xl w-full text-slate-900 font-black">
+      <button onClick={() => onSelect('completo')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200">
+        <div className="bg-indigo-100 p-6 rounded-full text-indigo-600 mb-6 mx-auto w-fit"><ListMusic size={60} /></div>
+        <span className="text-3xl uppercase italic tracking-tighter block mb-2">CANTO COMPLETO</span>
+        <p className="text-xs font-bold text-slate-400 uppercase">Avance por evaluación</p>
       </button>
-      <button onClick={() => onSelect('seccion')} className="bg-white p-14 rounded-[4rem] shadow-2xl hover:scale-105 transition-all border-b-15 border-slate-200">
-        <div className="bg-orange-100 p-8 rounded-full text-orange-600 mx-auto mb-6"><FileText size={80} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter block mb-2">CANTA SECCIÓN</span>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Estrofa al azar</p>
+      <button onClick={() => onSelect('seccion')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200">
+        <div className="bg-orange-100 p-6 rounded-full text-orange-600 mb-6 mx-auto w-fit"><FileText size={60} /></div>
+        <span className="text-3xl uppercase italic tracking-tighter block mb-2">CANTA SECCIÓN</span>
+        <p className="text-xs font-bold text-slate-400 uppercase">Estrofa al azar</p>
       </button>
     </div>
   </div>
 );
 
 // ==========================================
-// VISTA: CONTROL REMOTO (PARA CELULAR)
+// VISTA: CONTROL REMOTO (CELULAR)
 // ==========================================
 const RemoteControl = () => {
   const [appState, setAppState] = useState(null);
@@ -136,13 +152,12 @@ const RemoteControl = () => {
 
   const sendAction = (action) => {
     setStatus("Enviando...");
-    // ID Único para evitar repeticiones en el proyector
-    const messageId = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    const messageId = Date.now() + "_" + Math.random().toString(36).substr(2, 5);
     set(ref(db, 'remoto/mensaje'), { texto: action, timestamp: messageId })
       .then(() => { setStatus("OK ✓"); setCurrentWord(""); setTimeout(() => setStatus("Conectado"), 800); });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center text-white"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
@@ -169,7 +184,7 @@ const RemoteControl = () => {
               </div>
           )}
         </div>
-        <div className="mt-8 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest text-slate-600 italic">Mando Marquito Pro</div>
+        <div className="mt-10 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest">CONTROL REMOTO</div>
       </div>
     </div>
   );
@@ -178,7 +193,7 @@ const RemoteControl = () => {
 // ==========================================
 // VISTA: PANTALLA PRINCIPAL PROYECTOR
 // ==========================================
-const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, onHome }) => {
+const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
   const [students, setStudents] = useState([]);
   const [gameState, setGameState] = useState('lobby'); 
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -187,13 +202,13 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const [sessionPoints, setSessionPoints] = useState(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [playerKey, setPlayerKey] = useState(0);
 
   const audioRef = useRef(null);
+  const lastProcessedMsgId = useRef(""); 
   const turnStartTime = useRef(Date.now());
-  const lastMessageProcessed = useRef(""); 
   const lyricsContainerRef = useRef(null);
 
-  // Auto-scroll basado en la sección activa (cuando se completa la anterior)
   useEffect(() => {
       const activeElement = document.getElementById(`section-${activeSectionIdx}`);
       if (activeElement && lyricsContainerRef.current) {
@@ -201,25 +216,22 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
       }
   }, [activeSectionIdx]);
 
-  // Lógica de validación PALABRA POR PALABRA blindada
   const handleWordValidation = useCallback((input) => {
     if (!currentSectionData || gameState !== 'playing') return;
     
-    let wordFoundInUpdate = false;
+    let processedThisCall = false;
 
     setCurrentSectionData(prev => {
         if (!prev) return prev;
         
         const newSections = prev.sections.map((sec, sIdx) => {
-            // Solo evaluamos la sección que el proyector muestra como activa
             if (sIdx !== activeSectionIdx) return sec;
 
             return {
                 ...sec,
                 lines: sec.lines.map(line => line.map(w => {
-                    // Solo revelamos la PRIMERA palabra oculta pendiente de esta sección
-                    if (!wordFoundInUpdate && w.isHidden && !w.isRevealed) {
-                        wordFoundInUpdate = true;
+                    if (!processedThisCall && w.isHidden && !w.isRevealed) {
+                        processedThisCall = true;
                         let isCorrect = false;
                         if (input === "CORRECTO") isCorrect = true;
                         else if (input === "ERROR") isCorrect = false;
@@ -232,13 +244,11 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
             };
         });
 
-        // HITO: Verificar si la sección se terminó para avanzar el proyector
         const currentSec = newSections[activeSectionIdx];
-        const isSectionComplete = currentSec.lines.every(line => line.every(w => !w.isHidden || w.isRevealed));
+        const allRevealed = currentSec.lines.every(line => line.every(w => !w.isHidden || w.isRevealed));
         
-        if (isSectionComplete && activeSectionIdx < newSections.length - 1) {
-            // Retraso de 1 segundo antes de avanzar para que vean la última palabra revelada
-            setTimeout(() => setActiveSectionIdx(prevIdx => prevIdx + 1), 1000);
+        if (allRevealed && activeSectionIdx < newSections.length - 1) {
+            setTimeout(() => setActiveSectionIdx(p => p + 1), 800);
         }
 
         return { ...prev, sections: newSections };
@@ -252,18 +262,16 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     setIsSpinning(true);
     setGameState('spinning');
     let count = 0;
-    const maxTicks = 30; // Ruleta de 30 pasos visuales
-    
     const interval = setInterval(() => {
         const studentIndex = count % available.length;
         setSelectedStudent(available[studentIndex]);
-        if (count >= maxTicks) { 
+        if (count >= 40) { 
             clearInterval(interval); 
             setGameState('announced'); 
             setIsSpinning(false);
         }
         count++;
-    }, 100);
+    }, 80);
   };
 
   const startTurn = () => {
@@ -282,7 +290,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
             lines: s.lines.map(line => {
                 const words = line.split(' ');
                 const eligible = words.map((w, i) => (w.replace(/[¡!¿?.,;:"']/g, "").length >= 3 ? i : -1)).filter(i => i !== -1);
-                const hideCount = Math.ceil(eligible.length * 0.5); // 50% de dificultad
+                const hideCount = Math.ceil(eligible.length * 0.5);
                 const toHide = new Set(shuffle(eligible).slice(0, hideCount));
                 return words.map((text, idx) => ({ text, isHidden: toHide.has(idx), isRevealed: false, status: null }));
             })
@@ -292,15 +300,12 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   };
 
   const cerrarEscenario = () => {
-      if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
       setIsAudioPlaying(false);
   };
 
   const savePoints = () => {
-    const totalPoints = (() => {
+    const finalScore = (() => {
           let total = 0, correct = 0;
           currentSectionData?.sections.forEach(sec => sec.lines.forEach(l => l.forEach(w => { if (w.isHidden) { total++; if (w.status === 'correct') correct++; } })));
           return total > 0 ? Math.round((correct / total) * 100) : 100;
@@ -310,11 +315,11 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     const originalNombres = NOMBRES_ESTUDIANTES[curso];
     const studentIdx = originalNombres.indexOf(selectedStudent.name);
     if (studentIdx !== -1) {
-        update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: totalPoints, played: true });
+        update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
         const fecha = new Date().toISOString().slice(0, 10);
-        set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), { nombre: selectedStudent.name, points: totalPoints, modo: `${modo}_${singingMode}`, timestamp: Date.now() });
+        set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), { nombre: selectedStudent.name, points: finalScore, modo: `${modo}_${singingMode}`, timestamp: Date.now() });
     }
-    setSessionPoints(totalPoints);
+    setSessionPoints(finalScore);
     cerrarEscenario();
     setGameState('summary');
   };
@@ -337,9 +342,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   useEffect(() => {
     const unsubMsg = onValue(ref(db, 'remoto/mensaje'), (snapshot) => {
       const data = snapshot.val();
-      // FILTRO DE SEGURIDAD: Solo procesar si el ID es nuevo
-      if (data && data.timestamp !== lastMessageProcessed.current) {
-        lastMessageProcessed.current = data.timestamp;
+      if (data && data.timestamp && data.timestamp !== lastProcessedMsgId.current) {
+        lastProcessedMsgId.current = data.timestamp;
         handleWordValidation(data.texto);
       }
     });
@@ -349,57 +353,42 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const isShowcase = isAudioPlaying && singingMode === 'completo';
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-900">
-      <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={cerrarEscenario} />
-      
-      {/* CAPA ESCENARIO (AVANCE POR EVALUACIÓN) */}
-      {isShowcase && (
-          <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
-              <button onClick={cerrarEscenario} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
-              <div ref={lyricsContainerRef} className="flex-1 overflow-y-auto scrollbar-hide py-[45vh]">
-                  <div className="max-w-7xl mx-auto space-y-[45vh]">
-                  {currentSectionData?.sections.map((sec, sIdx) => {
-                      const active = sIdx === activeSectionIdx;
-                      return (
-                          <div key={sec.id} id={`section-${sIdx}`} className={`transition-all duration-1000 px-10 ${active ? 'scale-110 opacity-100' : 'opacity-5 blur-sm'}`}>
-                              <p className="text-red-600 font-black uppercase tracking-widest text-xl mb-10">{sec.title}</p>
-                              <div className="space-y-8 text-white">
-                                  {sec.lines.map((line, lIdx) => (
-                                      <p key={lIdx} className="text-4xl sm:text-[8vh] font-black flex flex-wrap gap-x-8 justify-center leading-tight tracking-tight text-white">
-                                          {line.map((word, wIdx) => (
-                                              <span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-500' : 'text-red-500 opacity-50 line-through') : 'text-transparent border-b-[10px] border-white/20 min-w-[8rem]') : ''}>{word.text}</span>
-                                          ))}
-                                      </p>
-                                  ))}
-                              </div>
-                          </div>
-                      );
-                  })}
-                  </div>
-              </div>
-          </div>
-      )}
+    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={cerrarEscenario} />
+        
+        {/* CAPA ESCENARIO (PANTALLA COMPLETA) */}
+        {isShowcase && (
+            <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
+                <button onClick={cerrarEscenario} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
+                <div ref={lyricsContainerRef} className="flex-1 overflow-y-auto scrollbar-hide py-[45vh]">
+                    <div className="max-w-7xl mx-auto space-y-[45vh]">
+                    {currentSectionData?.sections.map((sec, sIdx) => {
+                        const active = sIdx === activeSectionIdx;
+                        return (
+                            <div key={sec.id} id={`section-${sIdx}`} className={`transition-all duration-1000 px-10 ${active ? 'scale-110 opacity-100' : 'opacity-5 blur-sm'}`}>
+                                <p className="text-red-600 font-black uppercase tracking-widest text-xl mb-10">{sec.title}</p>
+                                <div className="space-y-8 text-white">
+                                    {sec.lines.map((line, lIdx) => (
+                                        <p key={lIdx} className="text-4xl sm:text-[8vh] font-black flex flex-wrap gap-x-8 justify-center leading-tight tracking-tight text-white">
+                                            {line.map((word, wIdx) => (
+                                                <span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-500' : 'text-red-500 opacity-50 line-through') : 'text-transparent border-b-[10px] border-white/20 min-w-[8rem]') : ''}>{word.text}</span>
+                                            ))}
+                                        </p>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    </div>
+                </div>
+            </div>
+        )}
 
-      {/* NAVBAR */}
-      <nav className="max-w-7xl mx-auto bg-white border-b-8 border-red-600 p-6 rounded-[3rem] flex flex-col sm:flex-row justify-between items-center shadow-2xl mb-12 gap-6 mt-6">
-        <div className="flex items-center gap-6">
-          <div className="bg-slate-900 p-4 rounded-3xl text-white shadow-xl">{modo === 'polirritmia' ? <Drum size={32}/> : (modo === 'himno' ? <Music size={32} /> : <Mic size={32}/>)}</div>
-          <div><h1 className="text-2xl sm:text-4xl font-black uppercase italic tracking-tighter leading-none">CCG-INTERACTIVO</h1><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] italic">{curso}</p></div>
-        </div>
-        <div className="flex items-center gap-4">
-            <button onClick={onHome} className="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-red-600 hover:text-white transition-all shadow-sm flex items-center gap-2 px-6 font-black uppercase text-xs text-slate-600"><Home size={20}/> Inicio</button>
-            <button onClick={onBack} className="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm flex items-center gap-2 px-6 font-black uppercase text-xs text-slate-600"><ArrowLeft size={20}/> Atrás</button>
-            <div className="w-[2px] h-8 bg-slate-200 mx-2"></div>
-            <button onClick={() => window.location.reload()} className="bg-slate-50 p-4 rounded-full text-slate-300 hover:text-red-600 border border-slate-200 transition-all shadow-sm text-slate-300"><RotateCcw size={28}/></button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 order-1 text-slate-900">
           {gameState === 'lobby' && (
             <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in text-slate-900">
               <div className="bg-red-50 p-12 rounded-full mb-12 text-red-600 text-red-600"><Star size={120} className="animate-pulse" fill="currentColor" /></div>
-              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-16 uppercase italic">¿Quién pasa?</h2>
+              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-16 uppercase italic">¿Quién sigue?</h2>
               <button onClick={startSpin} className="text-white text-3xl sm:text-6xl font-black px-16 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic bg-red-600 border-red-900 text-white">GIRAR RULETA</button>
             </div>
           )}
@@ -458,31 +447,50 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         </div>
 
         <div className="lg:col-span-4 order-2 text-slate-900">
-          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-10 text-slate-900">
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600 text-white"><h3 className="font-black uppercase text-xl italic flex items-center gap-4 text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
-            <div className="max-h-125 lg:max-h-[700px] overflow-y-auto scrollbar-hide bg-white text-slate-900 text-slate-900 text-slate-900">
+            {modo === 'karaoke' && !isShowcase && (
+                <div className="bg-white rounded-[3rem] p-8 mb-8 shadow-2xl border-b-10 border-slate-200 animate-in slide-in-from-right overflow-hidden text-slate-900 text-slate-900">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2"><PlayCircle size={14}/> Apoyo Visual</p>
+                <div className="aspect-video rounded-3xl overflow-hidden mb-6 bg-black border-2 border-slate-100 shadow-inner text-slate-900">
+                    <iframe 
+                    key={playerKey} width="100%" height="100%" 
+                    src={`https://www.youtube.com/embed/${YOUTUBE_ID_KARAOKE}?enablejsapi=1&rel=0`}
+                    title="YT" frameBorder="0" allowFullScreen
+                    ></iframe>
+                </div>
+                <div className="flex gap-4">
+                    <button onClick={() => setPlayerKey(k => k + 1)} className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-3 hover:bg-red-600 transition-all text-white"><SkipBack size={16}/> Reiniciar</button>
+                    <button onClick={() => window.open(`https://www.youtube.com/watch?v=${YOUTUBE_ID_KARAOKE}`, 'popout', 'width=600,height=400')} className="bg-slate-100 text-slate-600 p-4 rounded-2xl hover:bg-slate-200 transition-all text-slate-600 text-slate-600 text-slate-600"><ExternalLink size={20}/></button>
+                </div>
+                </div>
+            )}
+
+          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32 text-slate-900 text-slate-900 text-slate-900">
+            <div className="p-8 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600 text-white text-white text-white"><h3 className="font-black uppercase text-xl italic flex items-center gap-4 text-white text-white text-white text-white text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
+            <div className="max-h-125 lg:max-h-[700px] overflow-y-auto scrollbar-hide bg-white text-slate-900 text-slate-900 text-slate-900 text-slate-900 text-slate-900">
               {students.sort((a,b) => (b.points || 0) - (a.points || 0) || a.id - b.id).map((s, idx) => (
                 <div key={s.id} className={`px-10 py-6 border-b flex items-center justify-between transition-all ${s.id === selectedStudent?.id ? 'bg-red-50 scale-105 z-10 shadow-xl' : 'hover:bg-slate-50'}`}>
-                  <div className="flex items-center gap-6 text-slate-900">
+                  <div className="flex items-center gap-6">
                     <span className={`text-2xl font-black w-10 ${idx < 3 ? 'text-red-600 text-4xl' : 'text-slate-100'}`}>{idx + 1}</span>
-                    <div className="flex flex-col text-slate-900 text-slate-900 text-slate-900"><span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic text-slate-900 text-slate-900">{s.name}</span><span className={`text-[9px] font-black tracking-widest ${s.played ? 'text-green-500' : 'text-slate-400'}`}>{s.played ? 'PARTICIPÓ ✓' : 'PENDIENTE'}</span></div>
+                    <div className="flex flex-col text-slate-900 text-slate-900 text-slate-900 text-slate-900">
+                      <span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic text-slate-900 text-slate-900 text-slate-900">{s.name}</span>
+                      <span className={`text-[9px] font-black tracking-widest ${s.played ? 'text-green-500' : 'text-slate-400'}`}>{s.played ? 'PARTICIPÓ ✓' : 'PENDIENTE'}</span>
+                    </div>
                   </div>
-                  <div className="text-right font-mono font-black text-3xl text-slate-800 text-slate-800">{s.played ? (s.points || 0) : 0}</div>
+                  <div className="text-right font-mono font-black text-3xl text-slate-800 text-slate-800 text-slate-800 text-slate-800">{s.played ? (s.points || 0) : 0}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
 
 const App = () => {
-  const [role, setRole] = useState("display");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
+  const [role, setRole] = useState("display");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -491,17 +499,38 @@ const App = () => {
 
   if (role === "controller") return <RemoteControl />;
   if (!selectedCourse) return <CourseSelector onSelect={setSelectedCourse} />;
-  if (!selectedCategory) return <CategorySelector curso={selectedCourse} onSelectCategory={setSelectedCategory} onBack={() => setSelectedCourse(null)} />;
-  if ((selectedCategory === 'himno' || selectedCategory === 'karaoke') && !selectedMode) return <ModeSelector onSelect={setSelectedMode} onBack={() => setSelectedCategory(null)} />;
   
   return (
-    <MainDisplay 
+    <div className="min-h-screen bg-[#f1f5f9]">
+      <GlobalNavbar 
         curso={selectedCourse} 
-        modo={selectedCategory} 
-        singingMode={selectedMode} 
-        onBack={() => setSelectedMode(null)}
-        onHome={() => { setSelectedCourse(null); setSelectedCategory(null); setSelectedMode(null); }}
-    />
+        actividad={selectedCategory} 
+        onBack={() => {
+            if (selectedMode) setSelectedMode(null);
+            else if (selectedCategory) setSelectedCategory(null);
+            else setSelectedCourse(null);
+        }} 
+        onHome={() => {
+            setSelectedCourse(null);
+            setSelectedCategory(null);
+            setSelectedMode(null);
+        }} 
+      />
+      
+      {!selectedCategory ? (
+        <CategorySelector curso={selectedCourse} onSelectCategory={setSelectedCategory} />
+      ) : !selectedMode ? (
+        <ModeSelector onSelect={setSelectedMode} />
+      ) : (
+        <MainDisplay 
+            curso={selectedCourse} 
+            modo={selectedCategory} 
+            singingMode={selectedMode} 
+            onBack={() => setSelectedMode(null)}
+            onHome={() => { setSelectedCourse(null); setSelectedCategory(null); setSelectedMode(null); }}
+        />
+      )}
+    </div>
   );
 };
 
