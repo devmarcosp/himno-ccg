@@ -85,7 +85,7 @@ const GlobalNavbar = ({ curso, actividad, onBack, onHome }) => (
         <button onClick={onBack} className="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-sm flex items-center gap-2 px-6 font-black uppercase text-xs">
             <ArrowLeft size={20}/> Atrás
         </button>
-        <div className="w-[2px] h-8 bg-slate-200 mx-2"></div>
+        <div className="w-0.5 h-8 bg-slate-200 mx-2"></div>
         <button onClick={() => window.location.reload()} className="bg-slate-50 p-4 rounded-full text-slate-300 hover:text-red-600 border border-slate-200 transition-all shadow-sm"><RotateCcw size={28}/></button>
     </div>
   </nav>
@@ -115,7 +115,7 @@ const CategorySelector = ({ curso, onSelectCategory }) => (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl w-full text-slate-900 font-black">
       <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">HIMNO</span></button>
       <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">KARAOKE</span></button>
-      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-white">POLIRRITMIA</span></button>)}
+      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">POLIRRITMIA</span></button>)}
     </div>
   </div>
 );
@@ -157,7 +157,7 @@ const RemoteControl = () => {
       .then(() => { setStatus("OK ✓"); setCurrentWord(""); setTimeout(() => setStatus("Conectado"), 800); });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center text-white"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
@@ -170,17 +170,17 @@ const RemoteControl = () => {
         <div className="space-y-8 animate-in fade-in">
           {appState.modoActual === 'karaoke' ? (
               <div className="space-y-6">
-                  <p className="text-slate-500 font-black uppercase text-xs tracking-widest italic text-white">Evaluación Karaoke</p>
+                  <p className="text-white font-black uppercase text-xs tracking-widest italic">Evaluación Karaoke</p>
                   <div className="grid grid-cols-1 gap-6">
-                      <button onClick={() => sendAction("CORRECTO")} className="w-full bg-green-600 text-white py-16 rounded-5xl font-black text-4xl shadow-2xl border-b-[20px] border-green-800 active:scale-95 flex items-center justify-center gap-4 text-white"><ThumbsUp size={64} /> ¡BIEN!</button>
-                      <button onClick={() => sendAction("ERROR")} className="w-full bg-red-600 text-white py-16 rounded-5xl font-black text-4xl shadow-2xl border-b-[20px] border-red-800 active:scale-95 flex items-center justify-center gap-4 text-white"><ThumbsDown size={64} /> ERROR</button>
+                      <button onClick={() => sendAction("CORRECTO")} className="w-full bg-green-600 text-white py-16 rounded-5xl font-black text-4xl shadow-2xl border-b-20 border-green-800 active:scale-95 flex items-center justify-center gap-4"><ThumbsUp size={64} /> ¡BIEN!</button>
+                      <button onClick={() => sendAction("ERROR")} className="w-full bg-red-600 text-white py-16 rounded-5xl font-black text-4xl shadow-2xl border-b-20 border-red-800 active:scale-95 flex items-center justify-center gap-4"><ThumbsDown size={64} /> ERROR</button>
                   </div>
               </div>
           ) : (
               <div className="space-y-8">
-                  <p className="text-slate-500 font-black uppercase text-xs tracking-widest italic text-white">Evaluación Himno</p>
-                  <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-5xl font-black p-8 rounded-3xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500 text-white" placeholder="..." />
-                  <button onClick={() => sendAction(currentWord)} className="w-full bg-red-600 text-white text-3xl font-black py-8 rounded-3xl border-b-12 border-red-900 active:scale-95 shadow-xl text-white uppercase">ENVIAR</button>
+                  <p className="text-white font-black uppercase text-xs tracking-widest italic">Evaluación Himno</p>
+                  <input type="text" value={currentWord} onChange={(e) => setCurrentWord(e.target.value)} className="w-full bg-slate-800 text-white text-5xl font-black p-8 rounded-3xl border-4 border-slate-700 outline-none uppercase text-center focus:border-red-500" placeholder="..." />
+                  <button onClick={() => sendAction(currentWord)} className="w-full bg-red-600 text-white text-3xl font-black py-8 rounded-3xl border-b-12 border-red-900 active:scale-95 shadow-xl uppercase">ENVIAR</button>
               </div>
           )}
         </div>
@@ -358,8 +358,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
         
         {/* CAPA ESCENARIO (PANTALLA COMPLETA) */}
         {isShowcase && (
-            <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
-                <button onClick={cerrarEscenario} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
+            <div className="fixed inset-0 bg-slate-950 z-9999 flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
+                <button onClick={cerrarEscenario} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-10001 transition-all"><X size={64}/></button>
                 <div ref={lyricsContainerRef} className="flex-1 overflow-y-auto scrollbar-hide py-[45vh]">
                     <div className="max-w-7xl mx-auto space-y-[45vh]">
                     {currentSectionData?.sections.map((sec, sIdx) => {
@@ -371,7 +371,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
                                     {sec.lines.map((line, lIdx) => (
                                         <p key={lIdx} className="text-4xl sm:text-[8vh] font-black flex flex-wrap gap-x-8 justify-center leading-tight tracking-tight text-white">
                                             {line.map((word, wIdx) => (
-                                                <span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-500' : 'text-red-500 opacity-50 line-through') : 'text-transparent border-b-[10px] border-white/20 min-w-[8rem]') : ''}>{word.text}</span>
+                                                <span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-500' : 'text-red-500 opacity-50 line-through') : 'text-transparent border-b-10 border-white/20 min-w-[8rem]') : ''}>{word.text}</span>
                                             ))}
                                         </p>
                                     ))}
@@ -384,47 +384,47 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
             </div>
         )}
 
-        <div className="lg:col-span-8 order-1 text-slate-900">
+        <div className="lg:col-span-8 order-1">
           {gameState === 'lobby' && (
-            <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in text-slate-900">
-              <div className="bg-red-50 p-12 rounded-full mb-12 text-red-600 text-red-600"><Star size={120} className="animate-pulse" fill="currentColor" /></div>
-              <h2 className="text-5xl sm:text-7xl font-black text-slate-900 mb-16 uppercase italic">¿Quién sigue?</h2>
-              <button onClick={startSpin} className="text-white text-3xl sm:text-6xl font-black px-16 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic bg-red-600 border-red-900 text-white">GIRAR RULETA</button>
+            <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-150 animate-in zoom-in">
+              <div className="bg-red-50 p-12 rounded-full mb-12 text-red-600"><Star size={120} className="animate-pulse" fill="currentColor" /></div>
+              <h2 className="text-5xl sm:text-7xl font-black mb-16 uppercase italic">¿Quién sigue?</h2>
+              <button onClick={startSpin} className="bg-red-600 text-white text-3xl sm:text-6xl font-black px-16 py-10 rounded-[3rem] border-b-18 border-red-900 shadow-2xl active:scale-95 transition-all uppercase italic">GIRAR RULETA</button>
             </div>
           )}
 
           {gameState === 'spinning' && (
-            <div className="bg-slate-900 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-[600px] border-15 border-slate-800 shadow-2xl overflow-hidden text-white text-white">
-              <h2 key={selectedStudent?.id} className="text-5xl sm:text-[8rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10 text-white text-white">{selectedStudent?.name}</h2>
+            <div className="bg-slate-900 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-150 border-15 border-slate-800 shadow-2xl overflow-hidden">
+              <h2 key={selectedStudent?.id} className="text-5xl sm:text-[8rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10 text-white">{selectedStudent?.name}</h2>
             </div>
           )}
 
           {gameState === 'announced' && (
-            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 animate-in slide-in-from-bottom ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
-              <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic text-white text-white">Es el turno de:</p>
-              <h2 className="text-6xl sm:text-[7rem] font-black mb-20 drop-shadow-2xl uppercase italic text-white text-white">{selectedStudent?.name}</h2>
-              <button onClick={startTurn} className="bg-white text-slate-900 px-16 py-10 rounded-3xl font-black text-5xl shadow-2xl hover:scale-105 transition-all italic uppercase text-slate-900 text-slate-900">¡A JUGAR!</button>
+            <div className={`rounded-[4rem] p-20 text-center shadow-2xl flex flex-col items-center justify-center min-h-150 border-b-20 animate-in slide-in-from-bottom ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
+              <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic text-white">Es el turno de:</p>
+              <h2 className="text-6xl sm:text-[7rem] font-black mb-20 drop-shadow-2xl uppercase italic text-white">{selectedStudent?.name}</h2>
+              <button onClick={startTurn} className="bg-white text-slate-900 px-16 py-10 rounded-3xl font-black text-5xl shadow-2xl hover:scale-105 transition-all italic uppercase">¡A JUGAR!</button>
             </div>
           )}
 
           {gameState === 'playing' && (
-            <div className="space-y-12 animate-in fade-in text-white">
+            <div className="space-y-12 animate-in fade-in">
               <div className={`p-10 rounded-[3.5rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'himno' ? 'bg-slate-900 border-red-600' : 'bg-slate-900 border-green-600'}`}>
-                <div className="flex items-center gap-10 text-white text-white">
+                <div className="flex items-center gap-10 text-white">
                     <div className={`${modo === 'himno' ? 'bg-red-600' : 'bg-green-600'} w-20 h-20 sm:w-32 sm:h-32 rounded-4xl flex items-center justify-center shadow-2xl text-white`}>{(modo === 'himno' ? <Music size={56} /> : <Mic size={56}/>)}</div>
                     <div><h3 className="text-3xl sm:text-6xl font-black uppercase italic truncate text-white">{selectedStudent?.name}</h3><span className="text-[10px] font-black uppercase opacity-60 tracking-widest text-white">Avance Manual</span></div>
                 </div>
-                {singingMode === 'completo' && (<button onClick={() => { if(audioRef.current) { audioRef.current.play(); setIsAudioPlaying(true); } }} className="bg-green-600 text-white p-8 rounded-full border-b-8 border-green-800 shadow-xl hover:scale-110 active:scale-95 transition-all text-white"><PlayCircle size={48}/></button>)}
+                {singingMode === 'completo' && (<button onClick={() => { if(audioRef.current) { audioRef.current.play(); setIsAudioPlaying(true); } }} className="bg-green-600 text-white p-8 rounded-full border-b-8 border-green-800 shadow-xl hover:scale-110 active:scale-95 transition-all"><PlayCircle size={48}/></button>)}
               </div>
 
-              <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[400px] text-center text-slate-900">
-                 <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-4 animate-pulse justify-center text-red-600 mb-10 tracking-tighter italic uppercase text-red-600"><div className="w-3 h-3 rounded-full bg-red-600 text-red-600"></div> {currentSectionData?.title}</h4>
-                 <div className="space-y-10 text-slate-900">
+              <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-100 text-center">
+                 <h4 className="font-black text-sm uppercase tracking-tighter flex items-center gap-4 animate-pulse justify-center text-red-600 mb-10 italic"><div className="w-3 h-3 rounded-full bg-red-600"></div> {currentSectionData?.title}</h4>
+                 <div className="space-y-10">
                  {currentSectionData?.sections.map((sec, sIdx) => (
                     <div key={sec.id} id={`section-${sIdx}`} className={`space-y-8 transition-all duration-500 ${sIdx === activeSectionIdx ? 'scale-100 opacity-100' : 'scale-90 opacity-20 blur-[1px]'}`}>
                         {sec.lines.map((line, lIdx) => (
-                            <p key={lIdx} className="text-2xl sm:text-4xl font-black flex flex-wrap gap-x-6 justify-center leading-tight text-slate-900 text-slate-900">
-                                {line.map((word, wIdx) => (<span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50 line-through opacity-50') : 'bg-slate-100 text-transparent border-b-4 border-slate-200 min-w-[5rem]') : 'text-slate-800 text-slate-800'}>{word.text}</span>))}
+                            <p key={lIdx} className="text-2xl sm:text-4xl font-black flex flex-wrap gap-x-6 justify-center leading-tight">
+                                {line.map((word, wIdx) => (<span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50 line-through opacity-50') : 'bg-slate-100 text-transparent border-b-4 border-slate-200 min-w-20') : 'text-slate-800'}>{word.text}</span>))}
                             </p>
                         ))}
                     </div>
@@ -432,25 +432,25 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
                  </div>
               </div>
 
-              <button onClick={savePoints} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>Finalizar Turno</button>
+              <button onClick={savePoints} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>Finalizar Turno</button>
             </div>
           )}
 
           {gameState === 'summary' && (
-            <div className="bg-white rounded-[5rem] p-16 sm:p-24 text-center shadow-2xl min-h-[600px] border animate-in zoom-in border-slate-100 text-slate-900">
-              <Award size={150} className="text-yellow-500 mb-12 mx-auto animate-bounce text-yellow-500 text-yellow-500" />
-              <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic leading-none text-slate-900 text-slate-900">{selectedStudent?.name}</h2>
-              <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[10rem] font-mono font-black mb-16 shadow-2xl leading-none text-white text-white">{sessionPoints}</div>
-              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform text-white text-white">Siguiente</button>
+            <div className="bg-white rounded-[5rem] p-16 sm:p-24 text-center shadow-2xl min-h-150 border border-slate-100 animate-in zoom-in">
+              <Award size={150} className="text-yellow-500 mb-12 mx-auto animate-bounce" />
+              <h2 className="text-5xl sm:text-[6rem] font-black mb-12 uppercase italic leading-none">{selectedStudent?.name}</h2>
+              <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[10rem] font-mono font-black mb-16 shadow-2xl leading-none">{sessionPoints}</div>
+              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform">Siguiente</button>
             </div>
           )}
         </div>
 
-        <div className="lg:col-span-4 order-2 text-slate-900">
+        <div className="lg:col-span-4 order-2">
             {modo === 'karaoke' && !isShowcase && (
-                <div className="bg-white rounded-[3rem] p-8 mb-8 shadow-2xl border-b-10 border-slate-200 animate-in slide-in-from-right overflow-hidden text-slate-900 text-slate-900">
+                <div className="bg-white rounded-[3rem] p-8 mb-8 shadow-2xl border-b-10 border-slate-200 animate-in slide-in-from-right overflow-hidden">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2"><PlayCircle size={14}/> Apoyo Visual</p>
-                <div className="aspect-video rounded-3xl overflow-hidden mb-6 bg-black border-2 border-slate-100 shadow-inner text-slate-900">
+                <div className="aspect-video rounded-3xl overflow-hidden mb-6 bg-black border-2 border-slate-100 shadow-inner">
                     <iframe 
                     key={playerKey} width="100%" height="100%" 
                     src={`https://www.youtube.com/embed/${YOUTUBE_ID_KARAOKE}?enablejsapi=1&rel=0`}
@@ -458,25 +458,25 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
                     ></iframe>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={() => setPlayerKey(k => k + 1)} className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-3 hover:bg-red-600 transition-all text-white"><SkipBack size={16}/> Reiniciar</button>
-                    <button onClick={() => window.open(`https://www.youtube.com/watch?v=${YOUTUBE_ID_KARAOKE}`, 'popout', 'width=600,height=400')} className="bg-slate-100 text-slate-600 p-4 rounded-2xl hover:bg-slate-200 transition-all text-slate-600 text-slate-600 text-slate-600"><ExternalLink size={20}/></button>
+                    <button onClick={() => setPlayerKey(k => k + 1)} className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-3 hover:bg-red-600 transition-all"><SkipBack size={16}/> Reiniciar</button>
+                    <button onClick={() => window.open(`https://www.youtube.com/watch?v=${YOUTUBE_ID_KARAOKE}`, 'popout', 'width=600,height=400')} className="bg-slate-100 text-slate-600 p-4 rounded-2xl hover:bg-slate-200 transition-all"><ExternalLink size={20}/></button>
                 </div>
                 </div>
             )}
 
-          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32 text-slate-900 text-slate-900 text-slate-900">
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600 text-white text-white text-white"><h3 className="font-black uppercase text-xl italic flex items-center gap-4 text-white text-white text-white text-white text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
-            <div className="max-h-125 lg:max-h-[700px] overflow-y-auto scrollbar-hide bg-white text-slate-900 text-slate-900 text-slate-900 text-slate-900 text-slate-900">
+          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32">
+            <div className="p-8 bg-slate-900 flex justify-between items-center border-b-8 border-red-600"><h3 className="font-black uppercase text-xl italic flex items-center gap-4 text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
+            <div className="max-h-125 lg:max-h-175 overflow-y-auto scrollbar-hide">
               {students.sort((a,b) => (b.points || 0) - (a.points || 0) || a.id - b.id).map((s, idx) => (
                 <div key={s.id} className={`px-10 py-6 border-b flex items-center justify-between transition-all ${s.id === selectedStudent?.id ? 'bg-red-50 scale-105 z-10 shadow-xl' : 'hover:bg-slate-50'}`}>
                   <div className="flex items-center gap-6">
                     <span className={`text-2xl font-black w-10 ${idx < 3 ? 'text-red-600 text-4xl' : 'text-slate-100'}`}>{idx + 1}</span>
-                    <div className="flex flex-col text-slate-900 text-slate-900 text-slate-900 text-slate-900">
-                      <span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic text-slate-900 text-slate-900 text-slate-900">{s.name}</span>
+                    <div className="flex flex-col">
+                      <span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic">{s.name}</span>
                       <span className={`text-[9px] font-black tracking-widest ${s.played ? 'text-green-500' : 'text-slate-400'}`}>{s.played ? 'PARTICIPÓ ✓' : 'PENDIENTE'}</span>
                     </div>
                   </div>
-                  <div className="text-right font-mono font-black text-3xl text-slate-800 text-slate-800 text-slate-800 text-slate-800">{s.played ? (s.points || 0) : 0}</div>
+                  <div className="text-right font-mono font-black text-3xl text-slate-800">{s.played ? (s.points || 0) : 0}</div>
                 </div>
               ))}
             </div>
@@ -490,12 +490,10 @@ const App = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
-  const [role, setRole] = useState("display");
-
-  useEffect(() => {
+  const [role] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    setRole(params.get("control") === "celular" ? "controller" : "display");
-  }, []);
+    return params.get("control") === "celular" ? "controller" : "display";
+  });
 
   if (role === "controller") return <RemoteControl />;
   if (!selectedCourse) return <CourseSelector onSelect={setSelectedCourse} />;
