@@ -203,13 +203,11 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         const newSections = prev.sections.map((sec, sIdx) => {
             if (sIdx !== activeSectionIdx) return sec;
 
-            let wordFoundInThisCall = false;
             return {
                 ...sec,
                 lines: sec.lines.map(line => line.map(w => {
-                    if (!revealedOne && !wordFoundInThisCall && w.isHidden && !w.isRevealed) {
+                    if (!revealedOne && w.isHidden && !w.isRevealed) {
                         revealedOne = true;
-                        wordFoundInThisCall = true;
                         let isCorrect = false;
                         if (input === "CORRECTO") isCorrect = true;
                         else if (input === "ERROR") isCorrect = false;
