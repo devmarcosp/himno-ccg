@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, set, update, remove } from "firebase/database";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, 
@@ -22,6 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
 // ==========================================
 // 2. CONSTANTES GLOBALES
@@ -642,6 +644,12 @@ const App = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
+
+  useEffect(() => {
+    signInAnonymously(auth).catch((error) => {
+      console.error("Error en autenticación anónima:", error);
+    });
+  }, []);
 
   if (role === "controller") return <RemoteControl />;
   if (!selectedCourse) return <CourseSelector onSelect={setSelectedCourse} />;
