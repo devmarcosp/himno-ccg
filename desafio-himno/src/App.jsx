@@ -24,7 +24,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ==========================================
-// 2. CONSTANTES Y UTILIDADES
+// 2. CONSTANTES GLOBALES
 // ==========================================
 const CURSO_CON_POLIRRITMIA = "6° Básico";
 const YOUTUBE_ID_KARAOKE = "qt_U4mFJHUU"; 
@@ -45,20 +45,14 @@ const CURSOS = Object.keys(NOMBRES_ESTUDIANTES);
 const HIMNO_ESTRUCTURA = [
   { id: 'h1', title: 'Estrofa 1', lines: ['En aulas de saber y estrategias a crear', 'Estudiantes que florecen listos para avanzar', 'Calidad en cada paso siempre con pasión', 'Con docentes que inspiran guiando el corazón.'] },
   { id: 'h2', title: 'Coro', lines: ['Colegio Claudio Gay...', 'Unidos en verdad', 'Con educación cercana, familiar de calidad.', 'Forjando el futuro con esfuerzo', 'Esfuerzo y dedicación', 'Estudiantes y asistentes somos la gran misión...'] },
-  { id: 'h3', title: 'Estrofa 2', lines: ['Aquí la educación es un lazo sin igual', 'La familia y el saber son nuestro ideal', 'Estrategias que nos llevan a grandes triunfos hoy', 'Formamos el mañana con confianza y con amor.'] },
-  { id: 'h4', title: 'Coro Final', lines: ['Colegio Claudio Gay...', 'Ejemplo de unidad', 'Crecemos juntos siempre con toda dignidad.'] },
-  { id: 'h5', title: 'Final', lines: ['Educación, calidad...', 'Futuro y vocación', 'Claudio Gay', '¡Siempre en nuestro corazón!'] }
+  { id: 'h3', title: 'Estrofa 2', lines: ['Aquí la educación es un lazo sin igual', 'La familia y el saber son nuestro ideal', 'Estrategias que nos llevan a grandes triunfos hoy', 'Formamos el mañana con confianza y con amor.'] }
 ];
 
 const KARAOKE_ESTRUCTURA = [
   { id: 'k1', title: 'Intro Rapa Nui', lines: ['Hoe tatou ite vaka!!! …Huiiii', 'Aroto i te hetu´u, a au i oho mai ai', 'E koro ko reka ana au i tooku oho ki hiva'] },
   { id: 'k2', title: 'Verso 1', lines: ['Voy navegando, navegando', 'Voy navegando muy feliz', 'Llevo en mi bote muchas frutas', 'Y todo lo que aprendí…'] },
   { id: 'k3', title: 'Verso 2', lines: ['Dejé mi tierra y a mis hermanos', 'Por conocer más de mi país', 'No soy del norte ni del sur', 'Porque yo soy de Rapa Nui'] },
-  { id: 'k4', title: 'Puente', lines: ['Tahi rua, toru, ha', 'EEEEE A HE HOI´ EEEE'] },
-  { id: 'k5', title: 'Rapa Nui 2', lines: ['A roto ite hetu´u, a au i oho mai ai', 'E koro ko reka ana tooku oho ki hiva eeeeee'] },
-  { id: 'k6', title: 'Verso 3', lines: ['Por las estrellas me voy guiando como lo hizo mi abuelo ayer', 'Me prometí venir un día y al conti a conocer…'] },
-  { id: 'k7', title: 'Verso 4', lines: ['El sol muy fuerte está quemando y yo no paro de remar', 'Mi corazón está saltando, pero en mi alma fuerza y mas…'] },
-  { id: 'k8', title: 'Climax', lines: ['Ya muchas noches han pasado y el cielo estrellado está', 'Veo unas luces a lo lejos… Al continente al fin llegué'] }
+  { id: 'k4', title: 'Puente', lines: ['Tahi rua, toru, ha', 'EEEEE A HE HOI´ EEEE'] }
 ];
 
 const MUSICAL_FIGURES = [
@@ -68,30 +62,22 @@ const MUSICAL_FIGURES = [
   { type: 'Corcheas', value: 1, color: '#334155' }
 ];
 
+// ==========================================
+// 3. UTILIDADES
+// ==========================================
 const shuffleArray = (array) => {
-    const newArr = [...array];
-    for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    let m = array.length, t, i;
+    while (m) {
+        i = Math.floor(Math.random() * m--);
+        t = array[m]; array[m] = array[i]; array[i] = t;
     }
-    return newArr;
+    return array;
 };
 
 const normalize = (str) => (!str ? "" : str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¡!¿?.,;:"']/g, "").trim().toUpperCase());
 
-const generateBeatSequence = () => {
-    let seq = [];
-    let currentSum = 0;
-    while (currentSum < 4) {
-        const pick = MUSICAL_FIGURES.filter(f => f.value <= (4 - currentSum))[Math.floor(Math.random() * MUSICAL_FIGURES.filter(f => f.value <= (4 - currentSum)).length)];
-        seq.push(pick);
-        currentSum += pick.value;
-    }
-    return seq;
-};
-
 // ==========================================
-// 3. COMPONENTES VISUALES
+// 4. COMPONENTES VISUALES
 // ==========================================
 
 const MusicNote = ({ type, color = "currentColor" }) => {
@@ -131,15 +117,11 @@ const GlobalNavbar = ({ curso, actividad, onBack, onHome }) => (
   </nav>
 );
 
-// ==========================================
-// VISTAS CONFIGURACIÓN
-// ==========================================
-
 const CourseSelector = ({ onSelect }) => (
   <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 font-sans">
     <div className="bg-slate-800 p-12 rounded-[3rem] border-2 border-slate-700 shadow-2xl max-w-4xl w-full text-center text-white">
       <div className="bg-red-600/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner text-red-500"><School size={40} /></div>
-      <h2 className="text-3xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter">CCG-INTERACTIVO</h2>
+      <h2 className="text-3xl sm:text-5xl font-black mb-10 uppercase italic tracking-tighter text-white">CCG-INTERACTIVO</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
         {CURSOS.map(curso => (
           <button key={curso} onClick={() => onSelect(curso)} className="bg-slate-700 hover:bg-red-600 text-white py-5 px-8 rounded-2xl transition-all border-b-4 border-slate-900 flex items-center justify-between group">
@@ -157,33 +139,25 @@ const CategorySelector = ({ curso, onSelectCategory }) => (
     <h2 className="text-5xl font-black mb-4 italic uppercase tracking-tighter text-slate-900">{curso}</h2>
     <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600 underline-offset-8">Actividad</p>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl w-full text-slate-900 font-black">
-      <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">HIMNO</span></button>
-      <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">KARAOKE</span></button>
-      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700 text-white"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter">POLIRRITMIA</span></button>)}
+      <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit text-red-600"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">HIMNO</span></button>
+      <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit text-green-600"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">KARAOKE</span></button>
+      {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700 text-white"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit text-white text-white"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-white">POLIRRITMIA</span></button>)}
     </div>
   </div>
 );
 
 const ModeSelector = ({ onSelect }) => (
   <div className="flex flex-col items-center justify-center p-6 text-slate-900 font-sans text-center">
-    <h2 className="text-5xl font-black mb-16 italic uppercase tracking-tighter text-slate-900">Configuración</h2>
+    <h2 className="text-5xl font-black mb-16 italic uppercase tracking-tighter text-slate-900 text-slate-900">Configuración</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 max-w-4xl w-full text-slate-900 font-black">
-      <button onClick={() => onSelect('completo')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200">
-        <div className="bg-indigo-100 p-6 rounded-full text-indigo-600 mx-auto mb-6"><ListMusic size={80} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter block mb-2 text-slate-900">CANTO COMPLETO</span>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest text-slate-400">Avance por evaluación</p>
-      </button>
-      <button onClick={() => onSelect('seccion')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200">
-        <div className="bg-orange-100 p-6 rounded-full text-orange-600 mx-auto mb-6"><FileText size={80} /></div>
-        <span className="text-4xl uppercase italic tracking-tighter block mb-2 text-slate-900">CANTA SECCIÓN</span>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest text-slate-400">Estrofa al azar</p>
-      </button>
+      <button onClick={() => onSelect('completo')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200 text-slate-900 text-slate-900"><div className="bg-indigo-100 p-6 rounded-full text-indigo-600 mx-auto mb-6 text-indigo-600"><ListMusic size={80} /></div><span className="text-4xl uppercase italic tracking-tighter block mb-2 text-slate-900">CANTO COMPLETO</span><p className="text-sm font-bold text-slate-400 uppercase tracking-widest text-slate-400">Avance por evaluación</p></button>
+      <button onClick={() => onSelect('seccion')} className="bg-white p-12 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200 text-slate-900 text-slate-900"><div className="bg-orange-100 p-6 rounded-full text-orange-600 mx-auto mb-6 text-orange-600"><FileText size={80} /></div><span className="text-4xl uppercase italic tracking-tighter block mb-2 text-slate-900">CANTA SECCIÓN</span><p className="text-sm font-bold text-slate-400 uppercase tracking-widest text-slate-400">Estrofa al azar</p></button>
     </div>
   </div>
 );
 
 // ==========================================
-// VISTA: CONTROL REMOTO (PARA CELULAR)
+// VISTA: CONTROL REMOTO (CELULAR)
 // ==========================================
 const RemoteControl = () => {
   const [appState, setAppState] = useState(null);
@@ -209,21 +183,21 @@ const RemoteControl = () => {
     update(ref(db, 'remoto'), { evalPol: newVal });
   };
 
-  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
+  if (!appState) return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-10 font-sans text-center text-white"><Wifi size={40} className="mb-4 animate-pulse" /><p className="italic text-slate-500 font-black uppercase text-xs">Conectando...</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 flex flex-col items-center justify-center font-sans overflow-hidden">
-      <div className="w-full max-w-md bg-slate-900 p-6 rounded-4xl border-2 border-slate-800 shadow-2xl relative text-center text-white">
+      <div className="w-full max-w-md bg-slate-900 p-6 rounded-3xl border-2 border-slate-800 shadow-2xl relative text-center">
         <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-          <div className="text-[10px] font-black text-green-400 bg-green-950 px-4 py-2 rounded-full flex items-center gap-2 animate-pulse"><Wifi size={12}/> {status}</div>
+          <div className="text-[10px] font-black text-green-400 bg-green-950 px-4 py-2 rounded-full flex items-center gap-2 animate-pulse text-green-400"><Wifi size={12}/> {status}</div>
           <p className="text-[10px] font-black text-slate-500 uppercase italic">REMOTO MARQUITO</p>
         </div>
 
         <div className="space-y-8 animate-in fade-in">
           {appState.modoActual === 'polirritmia' ? (
-              <div className="space-y-4">
-                 <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic text-white">EVALUACIÓN RÍTMICA</p>
-                 <div className="grid grid-cols-2 gap-3 text-white">
+              <div className="space-y-4 text-white">
+                 <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic text-slate-500">EVALUACIÓN RÍTMICA</p>
+                 <div className="grid grid-cols-2 gap-3">
                     {evalPol.map((row, idx) => (
                        <React.Fragment key={idx}>
                            <button onClick={() => toggleEval(idx, 'L')} className={`py-6 rounded-2xl font-black border-b-8 ${row.L ? 'bg-green-600 border-green-800 text-white' : 'bg-red-600 border-red-800 text-white'}`}>IZQ {idx + 1}</button>
@@ -231,12 +205,11 @@ const RemoteControl = () => {
                        </React.Fragment>
                     ))}
                  </div>
-                 <button onClick={() => update(ref(db, 'remoto'), { evalPol: Array(4).fill(null).map(() => ({ L: true, R: true })) })} className="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase text-slate-500 mt-4 text-white">Reiniciar</button>
               </div>
           ) : (
-              <div className="space-y-6">
+              <div className="space-y-6 text-white">
                   {appState.palabraActual && appState.palabraActual !== "..." && (
-                      <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 animate-bounce text-white">
+                      <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 animate-bounce">
                           <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2 text-white">SOPLO (Palabra oculta):</p>
                           <h3 className="text-white text-5xl font-black italic tracking-tighter uppercase text-white">{appState.palabraActual}</h3>
                       </div>
@@ -248,7 +221,6 @@ const RemoteControl = () => {
               </div>
           )}
         </div>
-        <div className="mt-8 pt-4 border-t border-slate-800 text-center text-[10px] text-slate-600 font-black uppercase italic tracking-widest">{appState?.cursoActual}</div>
       </div>
     </div>
   );
@@ -257,12 +229,12 @@ const RemoteControl = () => {
 // ==========================================
 // VISTA: PANTALLA PRINCIPAL PROYECTOR
 // ==========================================
-const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
+const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, onHome }) => {
   const [students, setStudents] = useState([]);
   const [gameState, setGameState] = useState('lobby'); 
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [currentSectionData, setCurrentSectionData] = useState(null);
-  const [activeLineIdx, setActiveLineIdx] = useState(0); // Avance línea por línea
+  const [activeLineIdx, setActiveLineIdx] = useState(0); 
   const [sessionPoints, setSessionPoints] = useState(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -270,8 +242,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
   const [evalPol, setEvalPol] = useState(Array(4).fill(null).map(() => ({ L: true, R: true })));
 
   const audioRef = useRef(null);
-  const turnStartTime = useRef(Date.now());
   const lastProcessedMsgId = useRef(""); 
+  const turnStartTime = useRef(Date.now());
   const lyricsContainerRef = useRef(null);
 
   // Auto-scroll basado en la LÍNEA activa
@@ -282,7 +254,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
       }
   }, [activeLineIdx]);
 
-  // Soplo al Celular: Busca la SIGUIENTE palabra oculta en la letra completa
+  // Soplo al Celular
   useEffect(() => {
     if (gameState === 'playing' && currentSectionData && modo !== 'polirritmia') {
         let currentWord = "...";
@@ -299,7 +271,6 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
     }
   }, [currentSectionData, gameState, modo]);
 
-  // Lógica de validación PALABRA POR PALABRA con AVANCE DE LÍNEA
   const handleWordValidation = useCallback((input) => {
     if (!currentSectionData || gameState !== 'playing') return;
     
@@ -311,7 +282,6 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
         let newLines = [...prev.lines];
         let foundInThisLine = false;
 
-        // Buscamos en todas las líneas empezando por la actual
         newLines = newLines.map((line, lIdx) => {
             return line.map(w => {
                 if (!wordProcessed && w.isHidden && !w.isRevealed) {
@@ -339,19 +309,19 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
   const startSpin = () => {
     const available = students.filter(s => !s.played);
     if (isSpinning || available.length === 0) return;
-    
     setIsSpinning(true); setGameState('spinning');
     let count = 0;
-    const maxTicks = 45;
+    const maxTicks = 40;
     
-    // Barajado inicial para azar total
+    // Barajado inicial para azar total REAL
     const pool = shuffleArray([...available]);
     
     const interval = setInterval(() => {
-        setSelectedStudent(pool[count % pool.length]);
+        const studentIndex = Math.floor(Math.random() * pool.length);
+        setSelectedStudent(pool[studentIndex]);
         if (count >= maxTicks) { 
             clearInterval(interval); 
-            // Selección puramente aleatoria al final
+            // Selección final pura aleatoria
             setSelectedStudent(pool[Math.floor(Math.random() * pool.length)]);
             setGameState('announced'); 
             setIsSpinning(false);
@@ -369,11 +339,9 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
     if (modo === 'polirritmia') {
         setPolyrhythmRows(Array.from({ length: 4 }, () => ({ left: generateBeatSequence(), right: generateBeatSequence() })));
         const reset = Array(4).fill(null).map(() => ({ L: true, R: true }));
-        setEvalPol(reset);
         set(ref(db, 'remoto/evalPol'), reset);
     } else {
         const source = modo === 'himno' ? HIMNO_ESTRUCTURA : KARAOKE_ESTRUCTURA;
-        // Si es completo cargamos todo, si es sección cargamos una estrofa al azar
         let targetSections = singingMode === 'completo' ? source : [shuffleArray([...source])[0]];
         
         setCurrentSectionData({
@@ -381,10 +349,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
             lines: targetSections.flatMap(s => s.lines).map(lineText => {
                 const words = lineText.split(' ');
                 const eligible = words.map((w, i) => (w.replace(/[¡!¿?.,;:"']/g, "").length >= 3 ? i : -1)).filter(i => i !== -1);
-                // Ocultamos un 50% de las palabras elegibles de cada línea
                 const toHideCount = Math.ceil(eligible.length * 0.5);
                 const toHideIndices = new Set(shuffleArray(eligible).slice(0, toHideCount));
-                
                 return words.map((text, idx) => ({ text, isHidden: toHideIndices.has(idx), isRevealed: false, status: null }));
             })
         });
@@ -392,23 +358,18 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
     setGameState('playing');
   };
 
-  const cerrarEscenario = () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } setIsAudioPlaying(false); };
-
   const savePoints = () => {
     const finalScore = modo === 'polirritmia' ? Math.round((evalPol.reduce((acc, r) => acc + (r.L?1:0) + (r.R?1:0), 0) / 8) * 100) : (() => {
           let total = 0, correct = 0;
           currentSectionData?.lines.forEach(l => l.forEach(w => { if (w.isHidden) { total++; if (w.status === 'correct') correct++; } }));
           return total > 0 ? Math.round((correct / total) * 100) : 100;
         })();
-
     const cursoPath = curso.replace(/ /g, "_").toLowerCase();
     const studentIdx = NOMBRES_ESTUDIANTES[curso].indexOf(selectedStudent.name);
     if (studentIdx !== -1) {
         update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
-        const fecha = new Date().toISOString().slice(0, 10);
-        set(ref(db, `cursos/${cursoPath}/historial/${fecha}/${studentIdx}`), { nombre: selectedStudent.name, points: finalScore, modo: `${modo}_${singingMode}`, timestamp: Date.now() });
     }
-    setSessionPoints(finalScore); cerrarEscenario(); setGameState('summary');
+    setSessionPoints(finalScore); setGameState('summary');
   };
 
   useEffect(() => {
@@ -438,16 +399,13 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
     return () => unsubMsg();
   }, [currentSectionData, gameState, handleWordValidation]);
 
-  const isShowcase = isAudioPlaying && singingMode === 'completo';
-
   return (
     <div className="flex flex-col h-full text-slate-900">
       <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={() => setIsAudioPlaying(false)} />
       
-      {/* CAPA ESCENARIO (PANTALLA COMPLETA) */}
-      {isShowcase && (
-          <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
-              <button onClick={cerrarEscenario} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
+      {isAudioPlaying && singingMode === 'completo' && (
+          <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in">
+              <button onClick={() => { if(audioRef.current){audioRef.current.pause(); audioRef.current.currentTime=0;} setIsAudioPlaying(false); }} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
               <div ref={lyricsContainerRef} className="flex-1 overflow-y-auto scrollbar-hide py-[45vh]">
                   <div className="max-w-7xl mx-auto space-y-12">
                   {currentSectionData?.lines.map((line, lIdx) => {
@@ -471,49 +429,57 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
         <div className="lg:col-span-8 order-1">
           {gameState === 'lobby' && (
             <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in">
-              <div className="bg-red-50 p-12 rounded-full mb-12 text-red-600"><Star size={120} className="animate-pulse" fill="currentColor" /></div>
-              <h2 className="text-5xl sm:text-7xl font-black mb-16 uppercase italic">¿Quién sigue?</h2>
-              <button onClick={startSpin} className="text-white text-3xl sm:text-6xl font-black px-16 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all uppercase italic bg-red-600 border-red-900">GIRAR RULETA</button>
+              <Star size={120} className="text-red-600 animate-pulse mb-10" fill="currentColor" />
+              <h2 className="text-5xl font-black text-slate-900 mb-16 uppercase italic">¿Quién pasa?</h2>
+              <button onClick={startSpin} className="text-white text-3xl font-black px-20 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all bg-red-600 border-red-900 uppercase italic">GIRAR RULETA</button>
             </div>
           )}
 
           {gameState === 'spinning' && (
-            <div className="bg-slate-900 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-[600px] border-15 border-slate-800 shadow-2xl overflow-hidden text-white">
-              <h2 key={selectedStudent?.id} className="text-5xl sm:text-[8rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10">{selectedStudent?.name}</h2>
+            <div className="bg-slate-900 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-[600px] border-15 border-slate-800 text-white">
+              <h2 key={selectedStudent?.id} className="text-[6rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10">{selectedStudent?.name}</h2>
             </div>
           )}
 
           {gameState === 'announced' && (
-            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 animate-in slide-in-from-bottom ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
-              <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic text-white">Es el turno de:</p>
-              <h2 className="text-6xl sm:text-[7rem] font-black mb-20 drop-shadow-2xl uppercase italic">{selectedStudent?.name}</h2>
+            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
+              <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic">Turno de:</p>
+              <h2 className="text-7xl font-black mb-20 drop-shadow-2xl uppercase italic">{selectedStudent?.name}</h2>
               <button onClick={startTurn} className="bg-white text-slate-900 px-16 py-10 rounded-3xl font-black text-5xl shadow-2xl hover:scale-105 transition-all italic uppercase">¡A JUGAR!</button>
             </div>
           )}
 
           {gameState === 'playing' && (
-            <div className="space-y-12 animate-in fade-in text-white">
+            <div className="space-y-12 animate-in fade-in">
               <div className={`p-10 rounded-[3.5rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'himno' ? 'bg-slate-900 border-red-600' : 'bg-slate-900 border-green-600'}`}>
                 <div className="flex items-center gap-10 text-white">
-                    <div className={`${modo === 'himno' ? 'bg-red-600' : 'bg-green-600'} w-20 h-20 sm:w-32 sm:h-32 rounded-4xl flex items-center justify-center shadow-2xl text-white`}>{(modo === 'himno' ? <Music size={56} /> : <Mic size={56}/>)}</div>
-                    <div><h3 className="text-3xl sm:text-6xl font-black uppercase italic truncate text-white">{selectedStudent?.name}</h3><span className="text-[10px] font-black uppercase opacity-60 tracking-widest">Modo Evaluación Manual</span></div>
+                    <div className={`${modo === 'himno' ? 'bg-red-600' : 'bg-green-600'} w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl`}>{(modo === 'himno' ? <Music size={56} /> : <Mic size={56}/>)}</div>
+                    <div><h3 className="text-4xl sm:text-6xl font-black uppercase italic truncate">{selectedStudent?.name}</h3><span className="text-[10px] font-black uppercase opacity-60 tracking-widest">Control Manual de Avance</span></div>
                 </div>
-                {singingMode === 'completo' && (<button onClick={() => { if(audioRef.current) { audioRef.current.play(); setIsAudioPlaying(true); } }} className="bg-green-600 text-white p-8 rounded-full border-b-8 border-green-800 shadow-xl hover:scale-110 active:scale-95 transition-all"><PlayCircle size={48}/></button>)}
+                {singingMode === 'completo' && (<button onClick={() => { if(audioRef.current) { audioRef.current.play(); setIsAudioPlaying(true); } }} className="bg-green-600 text-white p-8 rounded-full border-b-8 border-green-800 hover:scale-110 active:scale-95 transition-all"><PlayCircle size={48}/></button>)}
               </div>
 
               {modo === 'polirritmia' ? (
                 <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border flex flex-col gap-8 text-slate-900">
                     {polyrhythmRows.map((row, rIdx) => (
-                        <div key={rIdx} className="flex gap-6 border-b border-slate-100 last:border-0 pb-8 last:pb-0 animate-in slide-in-from-bottom"><div className="bg-slate-800 text-white w-12 h-12 flex items-center justify-center font-black rounded-2xl text-xl shadow-md text-white">{rIdx + 1}</div><div className={`flex-1 p-6 rounded-[2.5rem] border-4 flex items-center gap-4 transition-all ${evalPol[rIdx]?.L === true ? 'bg-green-50 border-green-500' : evalPol[rIdx]?.L === false ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200 opacity-60'}`}><Hand className="text-blue-600 -scale-x-100" size={40}/><div className="flex gap-2 overflow-x-auto">{row.left.map((fig, i) => <MusicNote key={i} type={fig.type} color="#2563eb" />)}</div></div><div className={`flex-1 p-6 rounded-[2.5rem] border-4 flex items-center gap-4 transition-all ${evalPol[rIdx]?.R === true ? 'bg-green-50 border-green-500' : evalPol[rIdx]?.R === false ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200 opacity-60'}`}><Hand className="text-red-600" size={40}/><div className="flex gap-2 overflow-x-auto">{row.right.map((fig, i) => <MusicNote key={i} type={fig.type} color="#dc2626" />)}</div></div></div>
+                        <div key={rIdx} className="flex gap-6 border-b border-slate-100 last:border-0 pb-8 last:pb-0 animate-in slide-in-from-bottom">
+                            <div className="bg-slate-800 text-white w-12 h-12 flex items-center justify-center font-black rounded-2xl text-xl shadow-md">{rIdx + 1}</div>
+                            <div className={`flex-1 p-6 rounded-[2.5rem] border-4 flex items-center gap-4 transition-all ${evalPol[rIdx]?.L === true ? 'bg-green-50 border-green-500' : evalPol[rIdx]?.L === false ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200'}`}>
+                                <Hand className="text-blue-600 -scale-x-100" size={40}/><div className="flex gap-2 overflow-x-auto">{row.left.map((fig, i) => <MusicNote key={i} type={fig.type} color="#2563eb" />)}</div>
+                            </div>
+                            <div className={`flex-1 p-6 rounded-[2.5rem] border-4 flex items-center gap-4 transition-all ${evalPol[rIdx]?.R === true ? 'bg-green-50 border-green-500' : evalPol[rIdx]?.R === false ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200'}`}>
+                                <Hand className="text-red-600" size={40}/><div className="flex gap-2 overflow-x-auto">{row.right.map((fig, i) => <MusicNote key={i} type={fig.type} color="#dc2626" />)}</div>
+                            </div>
+                        </div>
                     ))}
                 </div>
               ) : (
-                <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[400px] text-center text-slate-900">
-                   <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-4 animate-pulse justify-center text-red-600 mb-10 tracking-tighter italic uppercase text-red-600"><div className="w-3 h-3 rounded-full bg-red-600 text-red-600"></div> {currentSectionData?.title}</h4>
-                   <div ref={lyricsContainerRef} className="max-h-[500px] overflow-y-auto scrollbar-hide space-y-12 text-slate-900">
+                <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[450px] text-center">
+                   <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-4 animate-pulse justify-center text-red-600 mb-10"><div className="w-3 h-3 rounded-full bg-red-600"></div> {currentSectionData?.title}</h4>
+                   <div ref={lyricsContainerRef} className="max-h-[500px] overflow-y-auto scrollbar-hide space-y-12">
                    {currentSectionData?.lines.map((line, lIdx) => (
                       <div key={lIdx} id={`line-${lIdx}`} className={`transition-all duration-700 ${lIdx === activeLineIdx ? 'scale-105 opacity-100' : 'scale-90 opacity-20 blur-[1px]'}`}>
-                          <p className="text-2xl sm:text-5xl font-black flex flex-wrap gap-x-6 justify-center leading-tight">
+                          <p className="text-3xl sm:text-5xl font-black flex flex-wrap gap-x-6 justify-center leading-tight">
                               {line.map((word, wIdx) => (<span key={wIdx} className={word.isHidden ? (word.isRevealed ? (word.status === 'correct' ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50 line-through opacity-50') : 'bg-slate-100 text-transparent border-b-4 border-slate-200 min-w-[5rem]') : 'text-slate-800'}>{word.text}</span>))}
                           </p>
                       </div>
@@ -522,31 +488,31 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion' }) => {
                 </div>
               )}
 
-              <button onClick={savePoints} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : (modo === 'polirritmia' ? 'bg-blue-600 border-blue-900' : 'bg-green-600 border-green-900')}`}>Finalizar Turno</button>
+              <button onClick={savePoints} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-blue-600 border-blue-900'}`}>Finalizar Turno</button>
             </div>
           )}
 
           {gameState === 'summary' && (
-            <div className="bg-white rounded-[5rem] p-16 sm:p-24 text-center shadow-2xl min-h-[600px] border animate-in zoom-in border-slate-100 text-slate-900">
-              <Award size={150} className="text-yellow-500 mb-12 mx-auto animate-bounce text-yellow-500" />
-              <h2 className="text-5xl sm:text-[6rem] font-black text-slate-900 mb-12 uppercase italic leading-none">{selectedStudent?.name}</h2>
-              <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-7xl sm:text-[10rem] font-mono font-black mb-16 shadow-2xl leading-none">{sessionPoints}</div>
-              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-3xl sm:text-4xl italic uppercase shadow-xl hover:scale-110 transition-transform">Siguiente</button>
+            <div className="bg-white rounded-[5rem] p-16 text-center shadow-2xl min-h-[600px] border animate-in zoom-in border-slate-100">
+              <Award size={150} className="text-yellow-500 mb-12 mx-auto animate-bounce" />
+              <h2 className="text-6xl font-black text-slate-900 mb-12 uppercase italic leading-none">{selectedStudent?.name}</h2>
+              <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-[8rem] font-mono font-black mb-16 shadow-2xl leading-none">{sessionPoints}</div>
+              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-4xl italic uppercase hover:scale-110 transition-transform">Siguiente</button>
             </div>
           )}
         </div>
 
-        <div className="lg:col-span-4 order-2 text-slate-900 text-slate-900">
-          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32 text-slate-900">
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600"><h3 className="font-black uppercase text-xl italic flex items-center gap-4 text-white"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
-            <div className="max-h-125 lg:max-h-[700px] overflow-y-auto scrollbar-hide bg-white text-slate-900">
+        <div className="lg:col-span-4 order-2 text-slate-900">
+          <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden lg:sticky lg:top-32">
+            <div className="p-8 bg-slate-900 text-white flex justify-between items-center border-b-8 border-red-600"><h3 className="font-black uppercase text-xl italic flex items-center gap-4"><Trophy className="text-yellow-400" size={32}/> RANKING</h3></div>
+            <div className="max-h-125 lg:max-h-[750px] overflow-y-auto scrollbar-hide bg-white">
               {students.sort((a,b) => (b.points || 0) - (a.points || 0) || a.id - b.id).map((s, idx) => (
                 <div key={s.id} className={`px-10 py-6 border-b flex items-center justify-between transition-all ${s.id === selectedStudent?.id ? 'bg-red-50 scale-105 z-10 shadow-xl' : 'hover:bg-slate-50'}`}>
                   <div className="flex items-center gap-6">
                     <span className={`text-2xl font-black w-10 ${idx < 3 ? 'text-red-600 text-4xl' : 'text-slate-100'}`}>{idx + 1}</span>
-                    <div className="flex flex-col text-slate-900 text-slate-900"><span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic">{s.name}</span><span className={`text-[9px] font-black tracking-widest ${s.played ? 'text-green-500' : 'text-slate-400'}`}>{s.played ? 'PARTICIPÓ ✓' : 'PENDIENTE'}</span></div>
+                    <div className="flex flex-col"><span className="font-black uppercase text-lg truncate w-32 leading-none mb-1 italic">{s.name}</span><span className={`text-[9px] font-black tracking-widest ${s.played ? 'text-green-500' : 'text-slate-400'}`}>{s.played ? 'PARTICIPÓ ✓' : 'PENDIENTE'}</span></div>
                   </div>
-                  <div className="text-right font-mono font-black text-3xl text-slate-800 text-slate-800">{s.played ? (s.points || 0) : 0}</div>
+                  <div className="text-right font-mono font-black text-3xl text-slate-800">{s.played ? (s.points || 0) : 0}</div>
                 </div>
               ))}
             </div>
