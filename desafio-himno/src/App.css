@@ -1,3 +1,87 @@
+/* ── Utilidades custom para clases no estándar en Tailwind v4 ── */
+@utility animate-in {
+  animation-name: enter;
+  animation-duration: var(--tw-duration, 500ms);
+  animation-fill-mode: both;
+}
+@utility fade-in {
+  --tw-enter-opacity: 0;
+}
+@utility zoom-in {
+  --tw-enter-scale: 0.9;
+}
+@utility slide-in-from-top {
+  --tw-enter-translate-y: -1rem;
+}
+@utility slide-in-from-bottom {
+  --tw-enter-translate-y: 1rem;
+}
+@utility slide-in-from-right {
+  --tw-enter-translate-x: 1rem;
+}
+@utility duration-75 {
+  --tw-duration: 75ms;
+}
+@utility duration-300 {
+  --tw-duration: 300ms;
+}
+@utility duration-500 {
+  --tw-duration: 500ms;
+}
+@utility duration-1000 {
+  --tw-duration: 1000ms;
+}
+
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translateX(var(--tw-enter-translate-x, 0))
+               translateY(var(--tw-enter-translate-y, 0))
+               scale(var(--tw-enter-scale, 1));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@utility rounded-4xl {
+  border-radius: 2rem;
+}
+@utility rounded-5xl {
+  border-radius: 2.5rem;
+}
+
+@utility border-b-10 {
+  border-bottom-width: 10px;
+}
+@utility border-b-12 {
+  border-bottom-width: 12px;
+}
+@utility border-b-15 {
+  border-bottom-width: 15px;
+}
+@utility border-b-18 {
+  border-bottom-width: 18px;
+}
+@utility border-b-20 {
+  border-bottom-width: 20px;
+}
+@utility border-15 {
+  border-width: 15px;
+}
+
+@utility max-h-125 {
+  max-height: 31.25rem;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
