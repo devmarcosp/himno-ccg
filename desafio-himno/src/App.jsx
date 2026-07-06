@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, Home,
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye, Flag
 } from 'lucide-react';
 
 // ==========================================
@@ -215,20 +215,35 @@ const RemoteControl = () => {
         <div className="space-y-8 animate-in fade-in">
           {appState.modoActual === 'mundial' ? (
               <div className="space-y-6">
-                  <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">
-                      <span className="text-6xl mb-4 block text-center animate-bounce">{appState.flagActual}</span>
-                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Pregunta:</p>
-                      <h3 className="text-white text-xl font-bold mb-6">{appState.preguntaActual}</h3>
-                      <p className="text-green-400 text-[10px] font-black uppercase tracking-widest mb-1">Respuesta Esperada:</p>
-                      <h3 className="text-green-300 text-lg font-bold">{appState.respuestaActual}</h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                      <button onClick={() => sendAction("REVELAR")} className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-blue-800 active:scale-95 flex items-center justify-center gap-3"><Eye size={24}/> MOSTRAR RESPUESTA</button>
-                      <div className="grid grid-cols-2 gap-4">
-                          <button onClick={() => sendAction("CORRECTO")} className="w-full bg-green-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-green-800 active:scale-95 flex items-center justify-center gap-2"><ThumbsUp size={20}/> ¡BIEN!</button>
-                          <button onClick={() => sendAction("ERROR")} className="w-full bg-red-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-red-800 active:scale-95 flex items-center justify-center gap-2"><ThumbsDown size={20}/> ERROR</button>
-                      </div>
-                  </div>
+                  {appState.gameState === 'question_active' && (
+                      <>
+                          <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">
+                              <span className="text-6xl mb-4 block text-center animate-bounce">{appState.flagActual}</span>
+                              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Pregunta:</p>
+                              <h3 className="text-white text-xl font-bold mb-6">{appState.preguntaActual}</h3>
+                              <p className="text-green-400 text-[10px] font-black uppercase tracking-widest mb-1">Respuesta Esperada:</p>
+                              <h3 className="text-green-300 text-lg font-bold">{appState.respuestaActual}</h3>
+                          </div>
+                          <button onClick={() => sendAction("TERMINAR_JUEGO")} className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-xl shadow-lg border-b-8 border-blue-800 active:scale-95 flex items-center justify-center gap-3"><Flag size={24}/> TERMINAR JUEGO Y SORTEAR PENAL</button>
+                      </>
+                  )}
+                  {appState.gameState === 'answering' && (
+                      <>
+                          <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">
+                              <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1">Pateando el penal:</p>
+                              <h3 className="text-white text-2xl font-black uppercase italic mb-4">{appState.estudianteActual}</h3>
+                              <p className="text-green-400 text-[10px] font-black uppercase tracking-widest mb-1">Respuesta Esperada:</p>
+                              <h3 className="text-green-300 text-lg font-bold">{appState.respuestaActual}</h3>
+                          </div>
+                          <div className="grid grid-cols-1 gap-4">
+                              <button onClick={() => sendAction("REVELAR")} className="w-full bg-slate-100 text-slate-900 py-5 rounded-3xl font-black text-lg shadow-lg border-b-8 border-slate-300 active:scale-95 flex items-center justify-center gap-3"><Eye size={22}/> MOSTRAR RESPUESTA</button>
+                              <div className="grid grid-cols-2 gap-4">
+                                  <button onClick={() => sendAction("GOL")} className="w-full bg-green-600 text-white py-8 rounded-3xl font-black text-2xl shadow-lg border-b-8 border-green-800 active:scale-95 flex items-center justify-center gap-2">⚽ ¡GOL!</button>
+                                  <button onClick={() => sendAction("PALO")} className="w-full bg-red-600 text-white py-8 rounded-3xl font-black text-2xl shadow-lg border-b-8 border-red-800 active:scale-95 flex items-center justify-center gap-2">🥅 AL PALO</button>
+                              </div>
+                          </div>
+                      </>
+                  )}
               </div>
           ) : appState.modoActual === 'polirritmia' ? (
               <div className="space-y-4 text-white">
@@ -278,6 +293,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const [evalPol, setEvalPol] = useState(Array(4).fill(null).map(() => ({ L: true, R: true })));
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
+  const [mundialResultType, setMundialResultType] = useState(null);
 
   const audioRef = useRef(null);
   const lastProcessedMsgId = useRef(""); 
@@ -294,11 +310,13 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
 
   // Soplo al Celular
   useEffect(() => {
-    if (gameState === 'playing' && modo === 'mundial' && currentQuestion) {
+    if (modo === 'mundial' && (gameState === 'question_active' || gameState === 'answering') && currentQuestion) {
         update(ref(db, 'estado'), {
+            gameState,
             preguntaActual: currentQuestion.question,
             respuestaActual: currentQuestion.answer,
-            flagActual: currentQuestion.flag
+            flagActual: currentQuestion.flag,
+            estudianteActual: selectedStudent?.name || ""
         });
     } else if (gameState === 'playing' && currentSectionData && modo !== 'polirritmia') {
         let currentWord = "...";
@@ -350,24 +368,66 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     });
   }, [currentSectionData, gameState, activeLineIdx]);
 
+  const startSpinFlag = () => {
+    if (isSpinning) return;
+    remove(ref(db, 'remoto/mensaje'));
+    setIsSpinning(true); setGameState('spinning_flag');
+    let count = 0;
+    const maxTicks = 30;
+    const interval = setInterval(() => {
+        setCurrentQuestion(MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)]);
+        if (count >= maxTicks) {
+            clearInterval(interval);
+            setCurrentQuestion(MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)]);
+            setIsAnswerRevealed(false);
+            setGameState('question_active');
+            setIsSpinning(false);
+        }
+        count++;
+    }, 80);
+  };
+
+  const startSpinStudent = useCallback(() => {
+    const available = students.filter(s => !s.played);
+    if (available.length === 0) return;
+    remove(ref(db, 'remoto/mensaje'));
+    setIsSpinning(true); setGameState('spinning_student');
+    let count = 0;
+    const maxTicks = 40;
+    const pool = shuffleArray([...available]);
+    const interval = setInterval(() => {
+        const studentIndex = Math.floor(Math.random() * pool.length);
+        setSelectedStudent(pool[studentIndex]);
+        if (count >= maxTicks) {
+            clearInterval(interval);
+            setSelectedStudent(pool[Math.floor(Math.random() * pool.length)]);
+            setIsAnswerRevealed(false);
+            setGameState('answering');
+            setIsSpinning(false);
+        }
+        count++;
+    }, 70);
+  }, [students]);
+
   const startSpin = () => {
+    if (modo === 'mundial') { startSpinFlag(); return; }
     const available = students.filter(s => !s.played);
     if (isSpinning || available.length === 0) return;
     setIsSpinning(true); setGameState('spinning');
     let count = 0;
     const maxTicks = 40;
-    
+
     // Barajado inicial para azar total REAL
     const pool = shuffleArray([...available]);
-    
+
     const interval = setInterval(() => {
         const studentIndex = Math.floor(Math.random() * pool.length);
         setSelectedStudent(pool[studentIndex]);
-        if (count >= maxTicks) { 
-            clearInterval(interval); 
+        if (count >= maxTicks) {
+            clearInterval(interval);
             // Selección final pura aleatoria
             setSelectedStudent(pool[Math.floor(Math.random() * pool.length)]);
-            setGameState('announced'); 
+            setGameState('announced');
             setIsSpinning(false);
         }
         count++;
@@ -375,7 +435,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   };
 
   const startTurn = () => {
-    turnStartTime.current = Date.now(); 
+    turnStartTime.current = Date.now();
     remove(ref(db, 'remoto/mensaje'));
     setActiveLineIdx(0);
     setIsAudioPlaying(false);
@@ -384,10 +444,6 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         setPolyrhythmRows(Array.from({ length: 4 }, () => ({ left: generateBeatSequence(), right: generateBeatSequence() })));
         const reset = Array(4).fill(null).map(() => ({ L: true, R: true }));
         set(ref(db, 'remoto/evalPol'), reset);
-    } else if (modo === 'mundial') {
-        const randomQ = MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)];
-        setCurrentQuestion(randomQ);
-        setIsAnswerRevealed(false);
     } else {
         const source = modo === 'himno' ? HIMNO_ESTRUCTURA : KARAOKE_ESTRUCTURA;
         let targetSections = singingMode === 'completo' ? source : [shuffleArray([...source])[0]];
@@ -425,6 +481,21 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     setSessionPoints(finalScore); setGameState('summary');
   }, [modo, evalPol, currentSectionData, curso, selectedStudent]);
 
+  const showResultMundial = useCallback((type) => {
+    const finalScore = type === 'gol' ? 100 : 0;
+    setMundialResultType(type);
+    setGameState('result_mundial');
+
+    const cursoPath = curso.replace(/ /g, "_").toLowerCase();
+    const studentIdx = NOMBRES_ESTUDIANTES[curso].indexOf(selectedStudent.name);
+    if (studentIdx !== -1) {
+        update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
+    }
+    setSessionPoints(finalScore);
+
+    setTimeout(() => setGameState('summary'), 3000);
+  }, [curso, selectedStudent]);
+
   useEffect(() => {
     update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo });
     if (!curso) return;
@@ -447,41 +518,55 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
       if (data && data.timestamp && data.timestamp !== lastProcessedMsgId.current) {
         lastProcessedMsgId.current = data.timestamp;
         if (modo === 'mundial') {
-            if (data.texto === "REVELAR") setIsAnswerRevealed(true);
-            else if (data.texto === "CORRECTO") savePoints(100);
-            else if (data.texto === "ERROR") savePoints(0);
+            if (data.texto === "TERMINAR_JUEGO") startSpinStudent();
+            else if (data.texto === "REVELAR") setIsAnswerRevealed(true);
+            else if (data.texto === "GOL") showResultMundial('gol');
+            else if (data.texto === "PALO") showResultMundial('palo');
         } else {
             handleWordValidation(data.texto);
         }
       }
     });
     return () => unsubMsg();
-  }, [currentSectionData, gameState, handleWordValidation, modo, savePoints]);
+  }, [currentSectionData, gameState, handleWordValidation, modo, showResultMundial, startSpinStudent]);
 
   return (
     <div className="flex flex-col h-full text-slate-900">
       <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={() => setIsAudioPlaying(false)} />
       
-      {gameState === 'playing' && modo === 'mundial' && (
-          <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
-              <button onClick={() => setGameState('announced')} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
+      {modo === 'mundial' && ['question_active', 'answering', 'result_mundial'].includes(gameState) && (
+          <div className={`fixed inset-0 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300 ${gameState === 'result_mundial' ? (mundialResultType === 'gol' ? 'bg-green-600' : 'bg-red-600') : 'bg-slate-950'}`}>
               <div className="flex-1 flex flex-col items-center justify-center py-[10vh] px-6">
-                  <div className="max-w-5xl mx-auto animate-in zoom-in">
-                      <div className="text-[10rem] mb-4 animate-bounce leading-none">{currentQuestion?.flag}</div>
-                      <h2 className="text-5xl sm:text-6xl font-black text-white mb-16 leading-tight tracking-tight px-10">
-                          {currentQuestion?.question}
-                      </h2>
-                      {isAnswerRevealed ? (
-                          <div className="bg-green-500/20 border-4 border-green-500 text-green-300 p-10 rounded-[3rem] animate-in slide-in-from-bottom shadow-2xl">
-                              <h3 className="text-xl font-black uppercase tracking-[0.5em] mb-4 opacity-70">Respuesta Correcta</h3>
-                              <p className="text-4xl sm:text-5xl font-bold">{currentQuestion?.answer}</p>
-                          </div>
-                      ) : (
-                          <div className="bg-white/5 border-4 border-dashed border-white/20 text-slate-400 p-12 rounded-[3rem] animate-pulse">
-                              <p className="text-2xl font-black uppercase tracking-widest italic">Anota tu respuesta en el cuaderno 📝</p>
-                          </div>
-                      )}
-                  </div>
+                  {gameState === 'result_mundial' ? (
+                      <div className="animate-in zoom-in text-white">
+                          <div className="text-[12rem] mb-10 drop-shadow-2xl animate-bounce leading-none">{mundialResultType === 'gol' ? '⚽' : '🥅'}</div>
+                          <h2 className="text-6xl sm:text-[8rem] font-black uppercase italic tracking-tighter drop-shadow-2xl">{mundialResultType === 'gol' ? '¡GOLAZO!' : '¡AL PALO!'}</h2>
+                          <p className="text-3xl font-black uppercase italic mt-8 opacity-80">{selectedStudent?.name}</p>
+                      </div>
+                  ) : (
+                      <div className="max-w-5xl mx-auto animate-in zoom-in">
+                          <div className="text-[10rem] mb-4 animate-bounce leading-none">{currentQuestion?.flag}</div>
+                          {gameState === 'answering' && (
+                              <div className="bg-blue-600/30 border-4 border-blue-500/50 rounded-full px-12 py-4 mb-8 inline-block animate-in slide-in-from-top">
+                                  <span className="text-white text-2xl sm:text-3xl font-black uppercase italic tracking-widest">Penal para: <span className="text-yellow-400">{selectedStudent?.name}</span></span>
+                              </div>
+                          )}
+                          <h2 className="text-5xl sm:text-6xl font-black text-white mb-16 leading-tight tracking-tight px-10">
+                              {currentQuestion?.question}
+                          </h2>
+                          {gameState === 'question_active' && (
+                              <div className="bg-white/5 border-4 border-dashed border-white/20 text-slate-400 p-12 rounded-[3rem] animate-pulse">
+                                  <p className="text-2xl font-black uppercase tracking-widest italic">Anota tu respuesta en el cuaderno 📝</p>
+                              </div>
+                          )}
+                          {gameState === 'answering' && isAnswerRevealed && (
+                              <div className="bg-green-500/20 border-4 border-green-500 text-green-300 p-10 rounded-[3rem] animate-in slide-in-from-bottom shadow-2xl">
+                                  <h3 className="text-xl font-black uppercase tracking-[0.5em] mb-4 opacity-70">Respuesta Correcta</h3>
+                                  <p className="text-4xl sm:text-5xl font-bold">{currentQuestion?.answer}</p>
+                              </div>
+                          )}
+                      </div>
+                  )}
               </div>
           </div>
       )}
@@ -510,7 +595,15 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 order-1">
-          {gameState === 'lobby' && (
+          {gameState === 'lobby' && modo === 'mundial' && (
+            <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in">
+              <div className="bg-yellow-100 p-12 rounded-full mb-10 text-yellow-600"><Globe size={120} /></div>
+              <h2 className="text-5xl font-black text-slate-900 mb-16 uppercase italic">¿Qué bandera sale?</h2>
+              <button onClick={startSpin} className="text-white text-3xl font-black px-20 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all bg-yellow-500 border-yellow-700 uppercase italic">GIRAR RULETA DE PREGUNTAS</button>
+            </div>
+          )}
+
+          {gameState === 'lobby' && modo !== 'mundial' && (
             <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in">
               <Star size={120} className="text-red-600 animate-pulse mb-10" fill="currentColor" />
               <h2 className="text-5xl font-black text-slate-900 mb-16 uppercase italic">¿Quién pasa?</h2>
@@ -524,19 +617,46 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
             </div>
           )}
 
+          {gameState === 'spinning_flag' && (
+            <div className="bg-blue-950 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-[600px] border-15 border-blue-900 text-white overflow-hidden">
+              <h2 key={currentQuestion?.country} className="text-[10rem] animate-in fade-in zoom-in duration-75">{currentQuestion?.flag}</h2>
+            </div>
+          )}
+
+          {gameState === 'spinning_student' && (
+            <div className="bg-slate-900 rounded-[4rem] p-24 text-center flex flex-col items-center justify-center min-h-[600px] border-15 border-slate-800 text-white">
+              <h2 key={selectedStudent?.id} className="text-[6rem] font-black italic tracking-tighter animate-in fade-in zoom-in duration-75 uppercase truncate w-full px-10">{selectedStudent?.name}</h2>
+            </div>
+          )}
+
           {gameState === 'announced' && (
-            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${modo === 'himno' ? 'bg-red-600 border-red-900' : modo === 'mundial' ? 'bg-yellow-500 border-yellow-700' : 'bg-green-600 border-green-900'}`}>
+            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
               <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic">Turno de:</p>
               <h2 className="text-7xl font-black mb-20 drop-shadow-2xl uppercase italic">{selectedStudent?.name}</h2>
               <button onClick={startTurn} className="bg-white text-slate-900 px-16 py-10 rounded-3xl font-black text-5xl shadow-2xl hover:scale-105 transition-all italic uppercase">¡A JUGAR!</button>
             </div>
           )}
 
-          {gameState === 'playing' && modo === 'mundial' && (
+          {gameState === 'question_active' && modo === 'mundial' && (
             <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[600px] text-center flex flex-col items-center justify-center gap-10">
                 <div className="bg-yellow-100 p-6 rounded-full text-yellow-600 mb-2 mx-auto w-fit"><Globe size={60} /></div>
+                <h3 className="text-3xl font-black uppercase italic">Pregunta {currentQuestion?.flag} en pantalla grande</h3>
+                <p className="text-2xl font-black uppercase tracking-widest italic text-slate-400">Cuando terminen de responder, presiona "Terminar Juego" en tu celular para sortear quién patea el penal.</p>
+            </div>
+          )}
+
+          {gameState === 'answering' && modo === 'mundial' && (
+            <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[600px] text-center flex flex-col items-center justify-center gap-10">
+                <div className="bg-blue-100 p-6 rounded-full text-blue-600 mb-2 mx-auto w-fit"><Flag size={60} /></div>
                 <h3 className="text-4xl sm:text-5xl font-black uppercase italic truncate">{selectedStudent?.name}</h3>
-                <p className="text-2xl font-black uppercase tracking-widest italic text-slate-400">Juego en curso en pantalla grande</p>
+                <p className="text-2xl font-black uppercase tracking-widest italic text-slate-400">Pateando el penal en pantalla grande</p>
+            </div>
+          )}
+
+          {gameState === 'result_mundial' && modo === 'mundial' && (
+            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${mundialResultType === 'gol' ? 'bg-green-600 border-green-900' : 'bg-red-600 border-red-900'}`}>
+              <div className="text-9xl mb-8">{mundialResultType === 'gol' ? '⚽' : '🥅'}</div>
+              <h2 className="text-6xl font-black uppercase italic">{mundialResultType === 'gol' ? '¡GOLAZO!' : '¡AL PALO!'}</h2>
             </div>
           )}
 
