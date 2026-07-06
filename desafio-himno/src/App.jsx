@@ -244,6 +244,9 @@ const RemoteControl = () => {
                           </div>
                       </>
                   )}
+                  {(appState.gameState === 'result_mundial' || appState.gameState === 'summary') && (
+                      <button onClick={() => sendAction("SIGUIENTE_PREGUNTA")} className="w-full bg-yellow-500 text-white py-8 rounded-3xl font-black text-2xl shadow-lg border-b-8 border-yellow-700 active:scale-95 flex items-center justify-center gap-3"><Globe size={28}/> SIGUIENTE PREGUNTA</button>
+                  )}
               </div>
           ) : appState.modoActual === 'polirritmia' ? (
               <div className="space-y-4 text-white">
@@ -310,12 +313,12 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
 
   // Soplo al Celular
   useEffect(() => {
-    if (modo === 'mundial' && (gameState === 'question_active' || gameState === 'answering') && currentQuestion) {
+    if (modo === 'mundial' && ['question_active', 'answering', 'result_mundial', 'summary'].includes(gameState)) {
         update(ref(db, 'estado'), {
             gameState,
-            preguntaActual: currentQuestion.question,
-            respuestaActual: currentQuestion.answer,
-            flagActual: currentQuestion.flag,
+            preguntaActual: currentQuestion?.question || "",
+            respuestaActual: currentQuestion?.answer || "",
+            flagActual: currentQuestion?.flag || "",
             estudianteActual: selectedStudent?.name || ""
         });
     } else if (gameState === 'playing' && currentSectionData && modo !== 'polirritmia') {
@@ -511,24 +514,37 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     return () => unsub();
   }, [curso, modo]);
 
+  // Refs siempre actualizadas para evitar closures obsoletas dentro del listener único de abajo
+  const modoRef = useRef(modo);
+  const handleWordValidationRef = useRef(handleWordValidation);
+  const showResultMundialRef = useRef(showResultMundial);
+  const startSpinStudentRef = useRef(startSpinStudent);
+  const startSpinFlagRef = useRef(startSpinFlag);
+  useEffect(() => { modoRef.current = modo; }, [modo]);
+  useEffect(() => { handleWordValidationRef.current = handleWordValidation; }, [handleWordValidation]);
+  useEffect(() => { showResultMundialRef.current = showResultMundial; }, [showResultMundial]);
+  useEffect(() => { startSpinStudentRef.current = startSpinStudent; }, [startSpinStudent]);
+  useEffect(() => { startSpinFlagRef.current = startSpinFlag; });
+
   useEffect(() => {
-    onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
+    const unsubEval = onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
     const unsubMsg = onValue(ref(db, 'remoto/mensaje'), (snapshot) => {
       const data = snapshot.val();
       if (data && data.timestamp && data.timestamp !== lastProcessedMsgId.current) {
         lastProcessedMsgId.current = data.timestamp;
-        if (modo === 'mundial') {
-            if (data.texto === "TERMINAR_JUEGO") startSpinStudent();
+        if (modoRef.current === 'mundial') {
+            if (data.texto === "TERMINAR_JUEGO") startSpinStudentRef.current();
             else if (data.texto === "REVELAR") setIsAnswerRevealed(true);
-            else if (data.texto === "GOL") showResultMundial('gol');
-            else if (data.texto === "PALO") showResultMundial('palo');
+            else if (data.texto === "SIGUIENTE_PREGUNTA") { setSelectedStudent(null); startSpinFlagRef.current(); }
+            else if (data.texto === "GOL") showResultMundialRef.current('gol');
+            else if (data.texto === "PALO") showResultMundialRef.current('palo');
         } else {
-            handleWordValidation(data.texto);
+            handleWordValidationRef.current(data.texto);
         }
       }
     });
-    return () => unsubMsg();
-  }, [currentSectionData, gameState, handleWordValidation, modo, showResultMundial, startSpinStudent]);
+    return () => { unsubEval(); unsubMsg(); };
+  }, []);
 
   return (
     <div className="flex flex-col h-full text-slate-900">
@@ -708,7 +724,11 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
               <Award size={150} className="text-yellow-500 mb-12 mx-auto animate-bounce" />
               <h2 className="text-6xl font-black text-slate-900 mb-12 uppercase italic leading-none">{selectedStudent?.name}</h2>
               <div className="bg-red-600 text-white px-20 py-10 rounded-[4rem] text-[8rem] font-mono font-black mb-16 shadow-2xl leading-none">{sessionPoints}</div>
-              <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-4xl italic uppercase hover:scale-110 transition-transform">Siguiente</button>
+              {modo === 'mundial' ? (
+                <button onClick={() => { setSelectedStudent(null); startSpinFlag(); }} className="bg-yellow-500 text-white px-20 py-10 rounded-2xl font-black text-4xl italic uppercase hover:scale-110 transition-transform border-b-8 border-yellow-700">Siguiente Pregunta</button>
+              ) : (
+                <button onClick={() => { setGameState('lobby'); setSelectedStudent(null); }} className="bg-slate-900 text-white px-20 py-10 rounded-2xl font-black text-4xl italic uppercase hover:scale-110 transition-transform">Siguiente</button>
+              )}
             </div>
           )}
         </div>
