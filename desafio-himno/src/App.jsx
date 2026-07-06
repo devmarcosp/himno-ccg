@@ -73,6 +73,24 @@ const MUNDIAL_QUESTIONS = [
   { flag: '🇵🇹', country: 'Portugal', question: '¿Qué familia de instrumentos usa cuerdas frotadas con un arco para generar sonido?', answer: 'Cuerdas frotadas (Ej: Violín, Violonchelo)' }
 ];
 
+const MUNDIAL_QUESTIONS_1BASICO = [
+  { flag: '🇨🇱', country: 'Chile', question: 'Cuando un ritmo es LENTO, ¿qué emoción puede estar transmitiendo? Dibújala.', answer: 'Calma, tristeza o tranquilidad (dibujo libre).' },
+  { flag: '🇦🇷', country: 'Argentina', question: 'Cuando un ritmo es RÁPIDO, ¿qué emoción puede estar transmitiendo? Dibújala.', answer: 'Alegría, emoción o energía (dibujo libre).' },
+  { flag: '🇧🇷', country: 'Brasil', question: 'Dibuja algo que suene FUERTE (forte).', answer: 'Un trueno, tambores, algo grande y ruidoso (dibujo libre).' },
+  { flag: '🇩🇪', country: 'Alemania', question: 'Dibuja algo que suene SUAVE (piano).', answer: 'Un susurro, una pluma cayendo, algo delicado (dibujo libre).' },
+  { flag: '🇫🇷', country: 'Francia', question: 'Dibuja un patrón: círculo, cuadrado, círculo, cuadrado... ¿qué sigue?', answer: 'Círculo (el patrón se repite).' },
+  { flag: '🇮🇹', country: 'Italia', question: 'Si la música suena triste, ¿qué color usarías para dibujar esa emoción?', answer: 'Colores fríos: azul, gris, morado (respuesta libre).' },
+  { flag: '🇪🇸', country: 'España', question: 'Si la música suena alegre, ¿qué color usarías para dibujar esa emoción?', answer: 'Colores cálidos: amarillo, naranjo, rojo (respuesta libre).' },
+  { flag: '🇺🇾', country: 'Uruguay', question: 'Dibuja un patrón de palmadas: fuerte, suave, fuerte, suave... ¿qué sigue?', answer: 'Suave (el patrón se repite).' },
+  { flag: '🇨🇴', country: 'Colombia', question: 'Dibuja un animal que camine LENTO como un ritmo lento.', answer: 'Tortuga, caracol, elefante (dibujo libre).' },
+  { flag: '🇲🇽', country: 'México', question: 'Dibuja un animal que se mueva RÁPIDO como un ritmo rápido.', answer: 'Conejo, guepardo, colibrí (dibujo libre).' },
+  { flag: '🇯🇵', country: 'Japón', question: 'Dibuja cómo te sientes cuando escuchas una canción de cumpleaños.', answer: 'Felicidad, fiesta (dibujo libre).' },
+  { flag: '🇰🇷', country: 'Corea del Sur', question: 'Dibuja una cara feliz y una cara triste. ¿Cuál va con un ritmo lento?', answer: 'La cara triste va con el ritmo lento.' },
+  { flag: '🇺🇸', country: 'EE.UU.', question: 'Dibuja un patrón de figuras: estrella, luna, estrella, luna... ¿qué sigue?', answer: 'Estrella (el patrón se repite).' },
+  { flag: '🇬🇧', country: 'Inglaterra', question: 'Si la música da miedo, ¿qué dibujarías?', answer: 'Algo oscuro, una tormenta, un monstruo (dibujo libre).' },
+  { flag: '🇵🇹', country: 'Portugal', question: 'Dibuja algo que represente el silencio.', answer: 'Un dedo en la boca (shh), la noche, algo quieto (dibujo libre).' }
+];
+
 const MUSICAL_FIGURES = [
   { type: 'Redonda', value: 4, color: '#dc2626' },
   { type: 'Blanca', value: 2, color: '#2563eb' },
@@ -371,6 +389,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     });
   }, [currentSectionData, gameState, activeLineIdx]);
 
+  const questionBank = curso === "1° Básico" ? MUNDIAL_QUESTIONS_1BASICO : MUNDIAL_QUESTIONS;
+
   const startSpinFlag = () => {
     if (isSpinning) return;
     remove(ref(db, 'remoto/mensaje'));
@@ -378,10 +398,10 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     let count = 0;
     const maxTicks = 30;
     const interval = setInterval(() => {
-        setCurrentQuestion(MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)]);
+        setCurrentQuestion(questionBank[Math.floor(Math.random() * questionBank.length)]);
         if (count >= maxTicks) {
             clearInterval(interval);
-            setCurrentQuestion(MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)]);
+            setCurrentQuestion(questionBank[Math.floor(Math.random() * questionBank.length)]);
             setIsAnswerRevealed(false);
             setGameState('question_active');
             setIsSpinning(false);
@@ -572,12 +592,12 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
                           </h2>
                           {gameState === 'question_active' && (
                               <div className="bg-white/5 border-4 border-dashed border-white/20 text-slate-400 p-12 rounded-[3rem] animate-pulse">
-                                  <p className="text-2xl font-black uppercase tracking-widest italic">Anota tu respuesta en el cuaderno 📝</p>
+                                  <p className="text-2xl font-black uppercase tracking-widest italic">{curso === "1° Básico" ? "Dibuja tu respuesta en el cuaderno ✏️" : "Anota tu respuesta en el cuaderno 📝"}</p>
                               </div>
                           )}
                           {gameState === 'answering' && isAnswerRevealed && (
                               <div className="bg-green-500/20 border-4 border-green-500 text-green-300 p-10 rounded-[3rem] animate-in slide-in-from-bottom shadow-2xl">
-                                  <h3 className="text-xl font-black uppercase tracking-[0.5em] mb-4 opacity-70">Respuesta Correcta</h3>
+                                  <h3 className="text-xl font-black uppercase tracking-[0.5em] mb-4 opacity-70">{curso === "1° Básico" ? "Idea de Respuesta" : "Respuesta Correcta"}</h3>
                                   <p className="text-4xl sm:text-5xl font-bold">{currentQuestion?.answer}</p>
                               </div>
                           )}
