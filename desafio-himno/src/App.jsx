@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, Home,
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye
 } from 'lucide-react';
 
 // ==========================================
@@ -53,6 +53,24 @@ const KARAOKE_ESTRUCTURA = [
   { id: 'k2', title: 'Verso 1', lines: ['Voy navegando, navegando', 'Voy navegando muy feliz', 'Llevo en mi bote muchas frutas', 'Y todo lo que aprendí…'] },
   { id: 'k3', title: 'Verso 2', lines: ['Dejé mi tierra y a mis hermanos', 'Por conocer más de mi país', 'No soy del norte ni del sur', 'Porque yo soy de Rapa Nui'] },
   { id: 'k4', title: 'Puente', lines: ['Tahi rua, toru, ha', 'EEEEE A HE HOI´ EEEE'] }
+];
+
+const MUNDIAL_QUESTIONS = [
+  { flag: '🇨🇱', country: 'Chile', question: '¿Cuántas líneas y cuántos espacios tiene un pentagrama?', answer: '5 líneas y 4 espacios' },
+  { flag: '🇦🇷', country: 'Argentina', question: '¿Para qué sirve la Llave de Sol?', answer: 'Para dar nombre a las notas, ubicando el Sol en la 2da línea (registro agudo).' },
+  { flag: '🇧🇷', country: 'Brasil', question: '¿Cuál es la diferencia entre el Ritmo y el Pulso?', answer: 'El pulso es el latido constante, el ritmo es la combinación de diferentes duraciones.' },
+  { flag: '🇩🇪', country: 'Alemania', question: '¿Cuántos tiempos dura una figura Redonda?', answer: '4 tiempos' },
+  { flag: '🇫🇷', country: 'Francia', question: '¿Qué figura musical dura exactamente 2 tiempos?', answer: 'La Blanca' },
+  { flag: '🇮🇹', country: 'Italia', question: '¿A qué llamamos "Tempo" en la música?', answer: 'A la velocidad a la que se interpreta o toca una obra musical.' },
+  { flag: '🇪🇸', country: 'España', question: '¿Qué es un Ostinato?', answer: 'Un patrón rítmico o melódico que se repite constantemente en una canción.' },
+  { flag: '🇺🇾', country: 'Uruguay', question: 'Si vemos una nota en la primera línea del pentagrama (con Llave de Sol), ¿qué nota es?', answer: 'Nota Mi' },
+  { flag: '🇨🇴', country: 'Colombia', question: 'Nombra 2 instrumentos que pertenezcan a la familia de percusión.', answer: 'Batería, pandero, xilófono, tambor, etc.' },
+  { flag: '🇲🇽', country: 'México', question: '¿Cómo puede la música transmitir la emoción de "tristeza"?', answer: 'Usando tempos lentos, tonalidades menores o instrumentos suaves.' },
+  { flag: '🇯🇵', country: 'Japón', question: '¿Para qué se utiliza la Llave de Fa?', answer: 'Para escribir y leer los sonidos o registros más graves.' },
+  { flag: '🇰🇷', country: 'Corea del Sur', question: '¿Qué nos indica la cifra indicadora de compás (ej. 4/4)?', answer: 'La cantidad de tiempos o pulsos que caben dentro de cada compás.' },
+  { flag: '🇺🇸', country: 'EE.UU.', question: '¿Cuántas corcheas equivalen al mismo tiempo que una Negra?', answer: '2 corcheas' },
+  { flag: '🇬🇧', country: 'Inglaterra', question: 'Si una canción acelera su velocidad, ¿qué elemento musical está cambiando?', answer: 'El Tempo' },
+  { flag: '🇵🇹', country: 'Portugal', question: '¿Qué familia de instrumentos usa cuerdas frotadas con un arco para generar sonido?', answer: 'Cuerdas frotadas (Ej: Violín, Violonchelo)' }
 ];
 
 const MUSICAL_FIGURES = [
@@ -138,9 +156,10 @@ const CategorySelector = ({ curso, onSelectCategory }) => (
   <div className="flex flex-col items-center justify-center p-6 text-slate-900 font-sans text-center">
     <h2 className="text-5xl font-black mb-4 italic uppercase tracking-tighter text-slate-900">{curso}</h2>
     <p className="text-red-500 font-black uppercase tracking-[0.5em] text-xs mb-16 italic underline decoration-red-600 underline-offset-8">Actividad</p>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-6xl w-full text-slate-900 font-black">
+    <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 max-w-7xl w-full text-slate-900 font-black">
       <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit text-red-600"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">HIMNO</span></button>
       <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit text-green-600"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">KARAOKE</span></button>
+      <button onClick={() => onSelectCategory('mundial')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-yellow-100 p-6 rounded-full text-yellow-600 mb-6 mx-auto w-fit text-yellow-600"><Globe size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">MUNDIAL</span></button>
       {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700 text-white"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit text-white text-white"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-white">POLIRRITMIA</span></button>)}
     </div>
   </div>
@@ -194,7 +213,24 @@ const RemoteControl = () => {
         </div>
 
         <div className="space-y-8 animate-in fade-in">
-          {appState.modoActual === 'polirritmia' ? (
+          {appState.modoActual === 'mundial' ? (
+              <div className="space-y-6">
+                  <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">
+                      <span className="text-6xl mb-4 block text-center animate-bounce">{appState.flagActual}</span>
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Pregunta:</p>
+                      <h3 className="text-white text-xl font-bold mb-6">{appState.preguntaActual}</h3>
+                      <p className="text-green-400 text-[10px] font-black uppercase tracking-widest mb-1">Respuesta Esperada:</p>
+                      <h3 className="text-green-300 text-lg font-bold">{appState.respuestaActual}</h3>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                      <button onClick={() => sendAction("REVELAR")} className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-blue-800 active:scale-95 flex items-center justify-center gap-3"><Eye size={24}/> MOSTRAR RESPUESTA</button>
+                      <div className="grid grid-cols-2 gap-4">
+                          <button onClick={() => sendAction("CORRECTO")} className="w-full bg-green-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-green-800 active:scale-95 flex items-center justify-center gap-2"><ThumbsUp size={20}/> ¡BIEN!</button>
+                          <button onClick={() => sendAction("ERROR")} className="w-full bg-red-600 text-white py-5 rounded-3xl font-black text-xl shadow-lg border-b-8 border-red-800 active:scale-95 flex items-center justify-center gap-2"><ThumbsDown size={20}/> ERROR</button>
+                      </div>
+                  </div>
+              </div>
+          ) : appState.modoActual === 'polirritmia' ? (
               <div className="space-y-4 text-white">
                  <p className="text-center text-slate-500 font-black uppercase text-[10px] tracking-widest italic text-slate-500">EVALUACIÓN RÍTMICA</p>
                  <div className="grid grid-cols-2 gap-3">
@@ -240,6 +276,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const [isSpinning, setIsSpinning] = useState(false);
   const [polyrhythmRows, setPolyrhythmRows] = useState([]);
   const [evalPol, setEvalPol] = useState(Array(4).fill(null).map(() => ({ L: true, R: true })));
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
 
   const audioRef = useRef(null);
   const lastProcessedMsgId = useRef(""); 
@@ -256,7 +294,13 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
 
   // Soplo al Celular
   useEffect(() => {
-    if (gameState === 'playing' && currentSectionData && modo !== 'polirritmia') {
+    if (gameState === 'playing' && modo === 'mundial' && currentQuestion) {
+        update(ref(db, 'estado'), {
+            preguntaActual: currentQuestion.question,
+            respuestaActual: currentQuestion.answer,
+            flagActual: currentQuestion.flag
+        });
+    } else if (gameState === 'playing' && currentSectionData && modo !== 'polirritmia') {
         let currentWord = "...";
         let found = false;
         currentSectionData.lines.forEach(line => {
@@ -269,7 +313,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         });
         update(ref(db, 'estado'), { palabraActual: currentWord });
     }
-  }, [currentSectionData, gameState, modo]);
+  }, [currentSectionData, gameState, modo, currentQuestion]);
 
   const handleWordValidation = useCallback((input) => {
     if (!currentSectionData || gameState !== 'playing') return;
@@ -340,6 +384,10 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         setPolyrhythmRows(Array.from({ length: 4 }, () => ({ left: generateBeatSequence(), right: generateBeatSequence() })));
         const reset = Array(4).fill(null).map(() => ({ L: true, R: true }));
         set(ref(db, 'remoto/evalPol'), reset);
+    } else if (modo === 'mundial') {
+        const randomQ = MUNDIAL_QUESTIONS[Math.floor(Math.random() * MUNDIAL_QUESTIONS.length)];
+        setCurrentQuestion(randomQ);
+        setIsAnswerRevealed(false);
     } else {
         const source = modo === 'himno' ? HIMNO_ESTRUCTURA : KARAOKE_ESTRUCTURA;
         let targetSections = singingMode === 'completo' ? source : [shuffleArray([...source])[0]];
@@ -358,19 +406,24 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     setGameState('playing');
   };
 
-  const savePoints = () => {
-    const finalScore = modo === 'polirritmia' ? Math.round((evalPol.reduce((acc, r) => acc + (r.L?1:0) + (r.R?1:0), 0) / 8) * 100) : (() => {
-          let total = 0, correct = 0;
-          currentSectionData?.lines.forEach(l => l.forEach(w => { if (w.isHidden) { total++; if (w.status === 'correct') correct++; } }));
-          return total > 0 ? Math.round((correct / total) * 100) : 100;
-        })();
+  const savePoints = useCallback((overrideScore = null) => {
+    let finalScore;
+    if (overrideScore !== null) {
+        finalScore = overrideScore;
+    } else if (modo === 'polirritmia') {
+        finalScore = Math.round((evalPol.reduce((acc, r) => acc + (r.L?1:0) + (r.R?1:0), 0) / 8) * 100);
+    } else {
+        let total = 0, correct = 0;
+        currentSectionData?.lines.forEach(l => l.forEach(w => { if (w.isHidden) { total++; if (w.status === 'correct') correct++; } }));
+        finalScore = total > 0 ? Math.round((correct / total) * 100) : 100;
+    }
     const cursoPath = curso.replace(/ /g, "_").toLowerCase();
     const studentIdx = NOMBRES_ESTUDIANTES[curso].indexOf(selectedStudent.name);
     if (studentIdx !== -1) {
         update(ref(db, `cursos/${cursoPath}/estudiantes/${studentIdx}`), { points: finalScore, played: true });
     }
     setSessionPoints(finalScore); setGameState('summary');
-  };
+  }, [modo, evalPol, currentSectionData, curso, selectedStudent]);
 
   useEffect(() => {
     update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo });
@@ -393,16 +446,46 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
       const data = snapshot.val();
       if (data && data.timestamp && data.timestamp !== lastProcessedMsgId.current) {
         lastProcessedMsgId.current = data.timestamp;
-        handleWordValidation(data.texto);
+        if (modo === 'mundial') {
+            if (data.texto === "REVELAR") setIsAnswerRevealed(true);
+            else if (data.texto === "CORRECTO") savePoints(100);
+            else if (data.texto === "ERROR") savePoints(0);
+        } else {
+            handleWordValidation(data.texto);
+        }
       }
     });
     return () => unsubMsg();
-  }, [currentSectionData, gameState, handleWordValidation]);
+  }, [currentSectionData, gameState, handleWordValidation, modo, savePoints]);
 
   return (
     <div className="flex flex-col h-full text-slate-900">
       <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={() => setIsAudioPlaying(false)} />
       
+      {gameState === 'playing' && modo === 'mundial' && (
+          <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300">
+              <button onClick={() => setGameState('announced')} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
+              <div className="flex-1 flex flex-col items-center justify-center py-[10vh] px-6">
+                  <div className="max-w-5xl mx-auto animate-in zoom-in">
+                      <div className="text-[10rem] mb-4 animate-bounce leading-none">{currentQuestion?.flag}</div>
+                      <h2 className="text-5xl sm:text-6xl font-black text-white mb-16 leading-tight tracking-tight px-10">
+                          {currentQuestion?.question}
+                      </h2>
+                      {isAnswerRevealed ? (
+                          <div className="bg-green-500/20 border-4 border-green-500 text-green-300 p-10 rounded-[3rem] animate-in slide-in-from-bottom shadow-2xl">
+                              <h3 className="text-xl font-black uppercase tracking-[0.5em] mb-4 opacity-70">Respuesta Correcta</h3>
+                              <p className="text-4xl sm:text-5xl font-bold">{currentQuestion?.answer}</p>
+                          </div>
+                      ) : (
+                          <div className="bg-white/5 border-4 border-dashed border-white/20 text-slate-400 p-12 rounded-[3rem] animate-pulse">
+                              <p className="text-2xl font-black uppercase tracking-widest italic">Anota tu respuesta en el cuaderno 📝</p>
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
       {isAudioPlaying && singingMode === 'completo' && (
           <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in">
               <button onClick={() => { if(audioRef.current){audioRef.current.pause(); audioRef.current.currentTime=0;} setIsAudioPlaying(false); }} className="absolute top-8 right-8 text-white/20 hover:text-white p-4 z-[10001] transition-all"><X size={64}/></button>
@@ -442,14 +525,22 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
           )}
 
           {gameState === 'announced' && (
-            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-green-600 border-green-900'}`}>
+            <div className={`rounded-[4rem] p-20 text-center text-white shadow-2xl flex flex-col items-center justify-center min-h-[600px] border-b-20 ${modo === 'himno' ? 'bg-red-600 border-red-900' : modo === 'mundial' ? 'bg-yellow-500 border-yellow-700' : 'bg-green-600 border-green-900'}`}>
               <p className="text-2xl font-bold opacity-70 uppercase tracking-widest mb-16 italic">Turno de:</p>
               <h2 className="text-7xl font-black mb-20 drop-shadow-2xl uppercase italic">{selectedStudent?.name}</h2>
               <button onClick={startTurn} className="bg-white text-slate-900 px-16 py-10 rounded-3xl font-black text-5xl shadow-2xl hover:scale-105 transition-all italic uppercase">¡A JUGAR!</button>
             </div>
           )}
 
-          {gameState === 'playing' && (
+          {gameState === 'playing' && modo === 'mundial' && (
+            <div className="bg-white p-12 sm:p-20 rounded-[4rem] shadow-2xl border min-h-[600px] text-center flex flex-col items-center justify-center gap-10">
+                <div className="bg-yellow-100 p-6 rounded-full text-yellow-600 mb-2 mx-auto w-fit"><Globe size={60} /></div>
+                <h3 className="text-4xl sm:text-5xl font-black uppercase italic truncate">{selectedStudent?.name}</h3>
+                <p className="text-2xl font-black uppercase tracking-widest italic text-slate-400">Juego en curso en pantalla grande</p>
+            </div>
+          )}
+
+          {gameState === 'playing' && modo !== 'mundial' && (
             <div className="space-y-12 animate-in fade-in">
               <div className={`p-10 rounded-[3.5rem] flex justify-between items-center border-b-8 shadow-2xl ${modo === 'himno' ? 'bg-slate-900 border-red-600' : 'bg-slate-900 border-green-600'}`}>
                 <div className="flex items-center gap-10 text-white">
@@ -488,7 +579,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
                 </div>
               )}
 
-              <button onClick={savePoints} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-blue-600 border-blue-900'}`}>Finalizar Turno</button>
+              <button onClick={() => savePoints()} className={`w-full py-10 rounded-[3rem] font-black text-3xl sm:text-5xl border-b-15 shadow-2xl transition-all italic uppercase text-white ${modo === 'himno' ? 'bg-red-600 border-red-900' : 'bg-blue-600 border-blue-900'}`}>Finalizar Turno</button>
             </div>
           )}
 
