@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, Home,
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye, Flag
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye, Flag, Presentation
 } from 'lucide-react';
 
 // ==========================================
@@ -96,6 +96,29 @@ const MUSICAL_FIGURES = [
   { type: 'Blanca', value: 2, color: '#2563eb' },
   { type: 'Negra', value: 1, color: '#0f172a' },
   { type: 'Corcheas', value: 1, color: '#334155' }
+];
+
+const MUNDIAL_SLIDES = [
+  {
+    title: 'Objetivo',
+    body: 'Repasar y aplicar los elementos del lenguaje musical (figuras rítmicas, notas en el pentagrama y compases de 4/4).'
+  },
+  {
+    title: 'Actividad 1',
+    body: 'Dibuja 5 pentagramas en tu cuaderno o guía y trabaja en cada uno según las instrucciones:',
+    items: [
+      'Pentagrama 1 – En llave de sol escribe las siguientes notas, (en este orden): si – la – re – mi – mi – do – fa – si. Debajo de cada nota, escribe su nombre.',
+      'Pentagrama 2 – En llave de sol crea 6 compases de 4/4 (4 tiempos cada uno) usando las notas del pentagrama 1. Recuerda que las figuras de cada compás deben sumar exactamente 4 tiempos.'
+    ]
+  },
+  {
+    title: 'Actividad 1 (continuación)',
+    items: [
+      'Pentagrama 3 – En llave de sol crea otros 6 compases de 4/4 (4 tiempos cada uno), distintos a los anteriores, usando las mismas notas. En cada compás debes usar al menos dos figuras diferentes (por ejemplo, una blanca y dos negras).',
+      'Pentagrama 4 – En llave de fa escribe la escala de Do completa (do – re – mi – fa – sol – la – si – do).',
+      'Pentagrama 5 – En llave de Fa escribe las siguientes notas, en este orden: fa – do – sol – re – la – mi – si. Debajo de cada nota, escribe su nombre.'
+    ]
+  }
 ];
 
 // ==========================================
@@ -233,6 +256,16 @@ const RemoteControl = () => {
         <div className="space-y-8 animate-in fade-in">
           {appState.modoActual === 'mundial' ? (
               <div className="space-y-6">
+                  {appState.gameState === 'slides' && (
+                      <>
+                          <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-center">
+                              <Presentation size={40} className="mx-auto mb-4 text-yellow-400" />
+                              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Diapositiva</p>
+                              <h3 className="text-white text-2xl font-black">{appState.slideActual} / {appState.slideTotal}</h3>
+                          </div>
+                          <button onClick={() => sendAction("AVANZAR_SLIDE")} className="w-full bg-yellow-500 text-white py-8 rounded-3xl font-black text-2xl shadow-lg border-b-8 border-yellow-700 active:scale-95 flex items-center justify-center gap-3">SIGUIENTE DIAPOSITIVA</button>
+                      </>
+                  )}
                   {appState.gameState === 'question_active' && (
                       <>
                           <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">
@@ -315,6 +348,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [mundialResultType, setMundialResultType] = useState(null);
+  const [slideMode, setSlideMode] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
 
   const audioRef = useRef(null);
   const lastProcessedMsgId = useRef(""); 
@@ -331,7 +366,9 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
 
   // Soplo al Celular
   useEffect(() => {
-    if (modo === 'mundial' && ['question_active', 'answering', 'result_mundial', 'summary'].includes(gameState)) {
+    if (modo === 'mundial' && slideMode) {
+        update(ref(db, 'estado'), { gameState: 'slides', slideActual: slideIndex + 1, slideTotal: MUNDIAL_SLIDES.length });
+    } else if (modo === 'mundial' && ['question_active', 'answering', 'result_mundial', 'summary'].includes(gameState)) {
         update(ref(db, 'estado'), {
             gameState,
             preguntaActual: currentQuestion?.question || "",
@@ -352,7 +389,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         });
         update(ref(db, 'estado'), { palabraActual: currentWord });
     }
-  }, [currentSectionData, gameState, modo, currentQuestion]);
+  }, [currentSectionData, gameState, modo, currentQuestion, slideMode, slideIndex]);
 
   const handleWordValidation = useCallback((input) => {
     if (!currentSectionData || gameState !== 'playing') return;
@@ -520,7 +557,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   }, [curso, selectedStudent]);
 
   useEffect(() => {
-    update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo });
+    update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo, gameState: 'lobby' });
+    remove(ref(db, 'remoto/mensaje'));
     if (!curso) return;
     const unsub = onValue(ref(db, `cursos/${curso.replace(/ /g, "_").toLowerCase()}/estudiantes`), (snap) => {
         const data = snap.val();
@@ -534,26 +572,55 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     return () => unsub();
   }, [curso, modo]);
 
+  const startSlides = () => {
+    remove(ref(db, 'remoto/mensaje'));
+    setSlideIndex(0);
+    setSlideMode(true);
+  };
+
+  const advanceSlide = useCallback(() => {
+    setSlideIndex(prev => {
+        if (prev >= MUNDIAL_SLIDES.length - 1) {
+            setSlideMode(false);
+            return 0;
+        }
+        return prev + 1;
+    });
+  }, []);
+
   // Refs siempre actualizadas para evitar closures obsoletas dentro del listener único de abajo
   const modoRef = useRef(modo);
   const handleWordValidationRef = useRef(handleWordValidation);
   const showResultMundialRef = useRef(showResultMundial);
   const startSpinStudentRef = useRef(startSpinStudent);
   const startSpinFlagRef = useRef(startSpinFlag);
+  const advanceSlideRef = useRef(advanceSlide);
   useEffect(() => { modoRef.current = modo; }, [modo]);
   useEffect(() => { handleWordValidationRef.current = handleWordValidation; }, [handleWordValidation]);
   useEffect(() => { showResultMundialRef.current = showResultMundial; }, [showResultMundial]);
   useEffect(() => { startSpinStudentRef.current = startSpinStudent; }, [startSpinStudent]);
   useEffect(() => { startSpinFlagRef.current = startSpinFlag; });
+  useEffect(() => { advanceSlideRef.current = advanceSlide; }, [advanceSlide]);
+
+  const hasSyncedInitialMsg = useRef(false);
 
   useEffect(() => {
     const unsubEval = onValue(ref(db, 'remoto/evalPol'), (snap) => { if(snap.val()) setEvalPol(snap.val()); });
     const unsubMsg = onValue(ref(db, 'remoto/mensaje'), (snapshot) => {
       const data = snapshot.val();
+
+      // Al montar, ignora cualquier mensaje ya existente (de una sesión anterior) en vez de re-ejecutarlo.
+      if (!hasSyncedInitialMsg.current) {
+        hasSyncedInitialMsg.current = true;
+        lastProcessedMsgId.current = data?.timestamp || "";
+        return;
+      }
+
       if (data && data.timestamp && data.timestamp !== lastProcessedMsgId.current) {
         lastProcessedMsgId.current = data.timestamp;
         if (modoRef.current === 'mundial') {
-            if (data.texto === "TERMINAR_JUEGO") startSpinStudentRef.current();
+            if (data.texto === "AVANZAR_SLIDE") advanceSlideRef.current();
+            else if (data.texto === "TERMINAR_JUEGO") startSpinStudentRef.current();
             else if (data.texto === "REVELAR") setIsAnswerRevealed(true);
             else if (data.texto === "SIGUIENTE_PREGUNTA") { setSelectedStudent(null); startSpinFlagRef.current(); }
             else if (data.texto === "GOL") showResultMundialRef.current('gol');
@@ -570,6 +637,34 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     <div className="flex flex-col h-full text-slate-900">
       <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={() => setIsAudioPlaying(false)} />
       
+      {modo === 'mundial' && slideMode && (
+          <div className="fixed inset-0 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300 bg-slate-950">
+              <div className="flex-1 flex flex-col items-center justify-center py-[10vh] px-6">
+                  <div key={slideIndex} className="max-w-6xl mx-auto animate-in zoom-in">
+                      <div className="bg-yellow-100 p-8 rounded-full text-yellow-600 mb-10 mx-auto w-fit"><Presentation size={72} /></div>
+                      <h2 className="text-5xl sm:text-6xl font-black text-white mb-12 leading-tight tracking-tight uppercase italic">
+                          {MUNDIAL_SLIDES[slideIndex]?.title}
+                      </h2>
+                      {MUNDIAL_SLIDES[slideIndex]?.body && (
+                          <p className="text-2xl sm:text-3xl font-bold text-slate-200 mb-10 px-6 leading-relaxed">{MUNDIAL_SLIDES[slideIndex].body}</p>
+                      )}
+                      {MUNDIAL_SLIDES[slideIndex]?.items && (
+                          <div className="flex flex-col gap-6 text-left">
+                              {MUNDIAL_SLIDES[slideIndex].items.map((item, idx) => (
+                                  <div key={idx} className="bg-white/5 border-2 border-dashed border-white/20 p-8 rounded-[2.5rem]">
+                                      <p className="text-xl sm:text-2xl font-bold text-slate-200 leading-relaxed">{item}</p>
+                                  </div>
+                              ))}
+                          </div>
+                      )}
+                  </div>
+              </div>
+              <div className="pb-10 text-slate-500 text-sm font-black uppercase tracking-[0.4em] italic">
+                  Diapositiva {slideIndex + 1} / {MUNDIAL_SLIDES.length}
+              </div>
+          </div>
+      )}
+
       {modo === 'mundial' && ['question_active', 'answering', 'result_mundial'].includes(gameState) && (
           <div className={`fixed inset-0 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300 ${gameState === 'result_mundial' ? (mundialResultType === 'gol' ? 'bg-green-600' : 'bg-red-600') : 'bg-slate-950'}`}>
               <div className="flex-1 flex flex-col items-center justify-center py-[10vh] px-6">
@@ -632,10 +727,13 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 order-1">
           {gameState === 'lobby' && modo === 'mundial' && (
-            <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px] animate-in zoom-in">
-              <div className="bg-yellow-100 p-12 rounded-full mb-10 text-yellow-600"><Globe size={120} /></div>
-              <h2 className="text-5xl font-black text-slate-900 mb-16 uppercase italic">¿Qué bandera sale?</h2>
-              <button onClick={startSpin} className="text-white text-3xl font-black px-20 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all bg-yellow-500 border-yellow-700 uppercase italic">GIRAR RULETA DE PREGUNTAS</button>
+            <div className="space-y-8 animate-in zoom-in">
+              <button onClick={startSlides} className="w-full text-white text-xl sm:text-2xl font-black px-12 py-8 rounded-[3rem] border-b-8 shadow-2xl active:scale-95 transition-all bg-slate-800 border-slate-950 uppercase italic flex items-center justify-center gap-4"><Presentation size={32}/> VER DIAPOSITIVAS</button>
+              <div className="bg-white rounded-[4rem] p-24 text-center shadow-2xl border flex flex-col items-center justify-center min-h-[600px]">
+                <div className="bg-yellow-100 p-12 rounded-full mb-10 text-yellow-600"><Globe size={120} /></div>
+                <h2 className="text-5xl font-black text-slate-900 mb-16 uppercase italic">¿Qué bandera sale?</h2>
+                <button onClick={startSpin} className="text-white text-3xl font-black px-20 py-10 rounded-[3rem] border-b-18 shadow-2xl active:scale-95 transition-all bg-yellow-500 border-yellow-700 uppercase italic">GIRAR RULETA DE PREGUNTAS</button>
+              </div>
             </div>
           )}
 
