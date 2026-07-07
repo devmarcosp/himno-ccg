@@ -105,19 +105,27 @@ const MUNDIAL_SLIDES = [
   },
   {
     title: 'Actividad 1',
-    body: 'Dibuja 5 pentagramas en tu cuaderno o guía y trabaja en cada uno según las instrucciones:',
-    items: [
-      'Pentagrama 1 – En llave de sol escribe las siguientes notas, (en este orden): si – la – re – mi – mi – do – fa – si. Debajo de cada nota, escribe su nombre.',
-      'Pentagrama 2 – En llave de sol crea 6 compases de 4/4 (4 tiempos cada uno) usando las notas del pentagrama 1. Recuerda que las figuras de cada compás deben sumar exactamente 4 tiempos.'
-    ]
+    body: 'Dibuja 5 pentagramas en tu cuaderno o guía y trabaja en cada uno según las instrucciones:'
   },
   {
-    title: 'Actividad 1 (continuación)',
-    items: [
-      'Pentagrama 3 – En llave de sol crea otros 6 compases de 4/4 (4 tiempos cada uno), distintos a los anteriores, usando las mismas notas. En cada compás debes usar al menos dos figuras diferentes (por ejemplo, una blanca y dos negras).',
-      'Pentagrama 4 – En llave de fa escribe la escala de Do completa (do – re – mi – fa – sol – la – si – do).',
-      'Pentagrama 5 – En llave de Fa escribe las siguientes notas, en este orden: fa – do – sol – re – la – mi – si. Debajo de cada nota, escribe su nombre.'
-    ]
+    title: 'Pentagrama 1',
+    body: 'En llave de sol escribe las siguientes notas, (en este orden): si – la – re – mi – mi – do – fa – si. Debajo de cada nota, escribe su nombre.'
+  },
+  {
+    title: 'Pentagrama 2',
+    body: 'En llave de sol crea 6 compases de 4/4 (4 tiempos cada uno) usando las notas del pentagrama 1. Recuerda que las figuras de cada compás deben sumar exactamente 4 tiempos.'
+  },
+  {
+    title: 'Pentagrama 3',
+    body: 'En llave de sol crea otros 6 compases de 4/4 (4 tiempos cada uno), distintos a los anteriores, usando las mismas notas. En cada compás debes usar al menos dos figuras diferentes (por ejemplo, una blanca y dos negras).'
+  },
+  {
+    title: 'Pentagrama 4',
+    body: 'En llave de fa escribe la escala de Do completa (do – re – mi – fa – sol – la – si – do).'
+  },
+  {
+    title: 'Pentagrama 5',
+    body: 'En llave de Fa escribe las siguientes notas, en este orden: fa – do – sol – re – la – mi – si. Debajo de cada nota, escribe su nombre.'
   }
 ];
 
@@ -264,6 +272,8 @@ const RemoteControl = () => {
                               <h3 className="text-white text-2xl font-black">{appState.slideActual} / {appState.slideTotal}</h3>
                           </div>
                           <button onClick={() => sendAction("AVANZAR_SLIDE")} className="w-full bg-yellow-500 text-white py-8 rounded-3xl font-black text-2xl shadow-lg border-b-8 border-yellow-700 active:scale-95 flex items-center justify-center gap-3">SIGUIENTE DIAPOSITIVA</button>
+                          <button onClick={() => sendAction("RETROCEDER_SLIDE")} className="w-full bg-slate-700 text-white py-5 rounded-3xl font-black text-lg shadow-lg border-b-8 border-slate-900 active:scale-95 flex items-center justify-center gap-3"><SkipBack size={20}/> DIAPOSITIVA ANTERIOR</button>
+                          <button onClick={() => sendAction("FINALIZAR_SLIDES")} className="w-full bg-red-600 text-white py-5 rounded-3xl font-black text-lg shadow-lg border-b-8 border-red-800 active:scale-95 flex items-center justify-center gap-3"><X size={20}/> FINALIZAR PRESENTACIÓN</button>
                       </>
                   )}
                   {appState.gameState === 'question_active' && (
@@ -588,6 +598,16 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     });
   }, []);
 
+  const retreatSlide = useCallback(() => {
+    setSlideIndex(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const endSlides = useCallback(() => {
+    remove(ref(db, 'remoto/mensaje'));
+    setSlideMode(false);
+    setSlideIndex(0);
+  }, []);
+
   // Refs siempre actualizadas para evitar closures obsoletas dentro del listener único de abajo
   const modoRef = useRef(modo);
   const handleWordValidationRef = useRef(handleWordValidation);
@@ -595,12 +615,16 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
   const startSpinStudentRef = useRef(startSpinStudent);
   const startSpinFlagRef = useRef(startSpinFlag);
   const advanceSlideRef = useRef(advanceSlide);
+  const retreatSlideRef = useRef(retreatSlide);
+  const endSlidesRef = useRef(endSlides);
   useEffect(() => { modoRef.current = modo; }, [modo]);
   useEffect(() => { handleWordValidationRef.current = handleWordValidation; }, [handleWordValidation]);
   useEffect(() => { showResultMundialRef.current = showResultMundial; }, [showResultMundial]);
   useEffect(() => { startSpinStudentRef.current = startSpinStudent; }, [startSpinStudent]);
   useEffect(() => { startSpinFlagRef.current = startSpinFlag; });
   useEffect(() => { advanceSlideRef.current = advanceSlide; }, [advanceSlide]);
+  useEffect(() => { retreatSlideRef.current = retreatSlide; }, [retreatSlide]);
+  useEffect(() => { endSlidesRef.current = endSlides; }, [endSlides]);
 
   const hasSyncedInitialMsg = useRef(false);
 
@@ -620,6 +644,8 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
         lastProcessedMsgId.current = data.timestamp;
         if (modoRef.current === 'mundial') {
             if (data.texto === "AVANZAR_SLIDE") advanceSlideRef.current();
+            else if (data.texto === "RETROCEDER_SLIDE") retreatSlideRef.current();
+            else if (data.texto === "FINALIZAR_SLIDES") endSlidesRef.current();
             else if (data.texto === "TERMINAR_JUEGO") startSpinStudentRef.current();
             else if (data.texto === "REVELAR") setIsAnswerRevealed(true);
             else if (data.texto === "SIGUIENTE_PREGUNTA") { setSelectedStudent(null); startSpinFlagRef.current(); }
@@ -638,28 +664,16 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
       <audio ref={audioRef} src={modo === 'himno' ? "/himno.mp3" : "/Voy Navegando, Navegando.mp3"} onEnded={() => setIsAudioPlaying(false)} />
       
       {modo === 'mundial' && slideMode && (
-          <div className="fixed inset-0 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300 bg-slate-950">
-              <div className="flex-1 flex flex-col items-center justify-center py-[10vh] px-6">
-                  <div key={slideIndex} className="max-w-6xl mx-auto animate-in zoom-in">
-                      <div className="bg-yellow-100 p-8 rounded-full text-yellow-600 mb-10 mx-auto w-fit"><Presentation size={72} /></div>
-                      <h2 className="text-5xl sm:text-6xl font-black text-white mb-12 leading-tight tracking-tight uppercase italic">
-                          {MUNDIAL_SLIDES[slideIndex]?.title}
-                      </h2>
-                      {MUNDIAL_SLIDES[slideIndex]?.body && (
-                          <p className="text-2xl sm:text-3xl font-bold text-slate-200 mb-10 px-6 leading-relaxed">{MUNDIAL_SLIDES[slideIndex].body}</p>
-                      )}
-                      {MUNDIAL_SLIDES[slideIndex]?.items && (
-                          <div className="flex flex-col gap-6 text-left">
-                              {MUNDIAL_SLIDES[slideIndex].items.map((item, idx) => (
-                                  <div key={idx} className="bg-white/5 border-2 border-dashed border-white/20 p-8 rounded-[2.5rem]">
-                                      <p className="text-xl sm:text-2xl font-bold text-slate-200 leading-relaxed">{item}</p>
-                                  </div>
-                              ))}
-                          </div>
-                      )}
-                  </div>
+          <div className="fixed inset-0 z-[9999] flex flex-col text-center overflow-hidden animate-in fade-in duration-300 bg-slate-950 p-6 sm:p-10">
+              <div key={slideIndex} className="flex-1 min-h-0 flex flex-col items-center justify-center animate-in zoom-in">
+                  <p className="text-yellow-500 text-lg sm:text-xl font-black uppercase tracking-[0.3em] italic mb-6 sm:mb-10">
+                      {MUNDIAL_SLIDES[slideIndex]?.title}
+                  </p>
+                  <p className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight max-w-6xl px-4">
+                      {MUNDIAL_SLIDES[slideIndex]?.body}
+                  </p>
               </div>
-              <div className="pb-10 text-slate-500 text-sm font-black uppercase tracking-[0.4em] italic">
+              <div className="pt-6 text-slate-500 text-sm font-black uppercase tracking-[0.4em] italic">
                   Diapositiva {slideIndex + 1} / {MUNDIAL_SLIDES.length}
               </div>
           </div>
