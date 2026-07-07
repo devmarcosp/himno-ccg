@@ -105,7 +105,7 @@ const MUNDIAL_SLIDES = [
   },
   {
     title: 'Actividad 1',
-    body: 'Dibuja 5 pentagramas en tu cuaderno o guía y trabaja en cada uno según las instrucciones:'
+    body: 'Dibuja 5 pentagramas en tu cuaderno y trabaja en cada uno según las instrucciones:'
   },
   {
     title: 'Pentagrama 1',
