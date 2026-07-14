@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue, set, update, remove } from "firebase/databas
 import { 
   Music, Star, Trophy, RotateCcw, Award, Wifi, 
   ChevronRight, School, Drum, Hand, LayoutGrid, Home,
-  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye, Flag, Presentation
+  Square, PlayCircle, RefreshCw, ArrowLeft, Mic2, Check, X, Mic, ExternalLink, SkipBack, ListMusic, FileText, ThumbsUp, ThumbsDown, Minimize2, Globe, Eye, Flag, Presentation, Link2, Upload, Maximize2
 } from 'lucide-react';
 
 // ==========================================
@@ -209,6 +209,7 @@ const CategorySelector = ({ curso, onSelectCategory }) => (
       <button onClick={() => onSelectCategory('himno')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-red-100 p-6 rounded-full text-red-600 mb-6 mx-auto w-fit text-red-600"><Music size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">HIMNO</span></button>
       <button onClick={() => onSelectCategory('karaoke')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-green-100 p-6 rounded-full text-green-600 mb-6 mx-auto w-fit text-green-600"><Mic size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">KARAOKE</span></button>
       <button onClick={() => onSelectCategory('mundial')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-yellow-100 p-6 rounded-full text-yellow-600 mb-6 mx-auto w-fit text-yellow-600"><Globe size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">MUNDIAL</span></button>
+      <button onClick={() => onSelectCategory('clases')} className="bg-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-200"><div className="bg-purple-100 p-6 rounded-full text-purple-600 mb-6 mx-auto w-fit text-purple-600"><Presentation size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-slate-900 text-slate-900">CLASES</span></button>
       {curso === CURSO_CON_POLIRRITMIA && (<button onClick={() => onSelectCategory('polirritmia')} className="bg-slate-800 text-white p-10 rounded-[3rem] shadow-2xl hover:scale-105 transition-all border-b-12 border-slate-950 border-2 border-slate-700 text-white"><div className="bg-blue-600 p-6 rounded-full text-white mb-6 mx-auto w-fit text-white text-white"><LayoutGrid size={60} /></div><span className="text-3xl uppercase italic tracking-tighter text-white">POLIRRITMIA</span></button>)}
     </div>
   </div>
@@ -223,6 +224,130 @@ const ModeSelector = ({ onSelect }) => (
     </div>
   </div>
 );
+
+// ==========================================
+// VISTA: CLASES (CANVA / ARCHIVO PARA PROYECTAR)
+// ==========================================
+const ClasesDisplay = () => {
+  const [canvaUrl, setCanvaUrl] = useState('');
+  const [embedUrl, setEmbedUrl] = useState('');
+  const [file, setFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toEmbedUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('/embed')) return url;
+    const cleaned = url.split('?')[0].replace(/\/view$/, '').replace(/\/watch$/, '');
+    return `${cleaned}/embed`;
+  };
+
+  const handleLoadCanva = (e) => {
+    e.preventDefault();
+    if (!canvaUrl.trim()) return;
+    setFile(null);
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+    setFileUrl('');
+    setEmbedUrl(toEmbedUrl(canvaUrl.trim()));
+  };
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+    setEmbedUrl('');
+    setCanvaUrl('');
+    setFile(selected);
+    setFileUrl(URL.createObjectURL(selected));
+  };
+
+  const clearContent = () => {
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+    setEmbedUrl('');
+    setFile(null);
+    setFileUrl('');
+    setCanvaUrl('');
+    setIsFullscreen(false);
+  };
+
+  const hasContent = Boolean(embedUrl || fileUrl);
+  const isImage = file && file.type.startsWith('image/');
+
+  const content = embedUrl ? (
+    <iframe
+      title="Presentación de Canva"
+      src={embedUrl}
+      allow="fullscreen"
+      allowFullScreen
+      className="w-full h-full border-0"
+    />
+  ) : isImage ? (
+    <img src={fileUrl} alt={file.name} className="w-full h-full object-contain bg-slate-950" />
+  ) : fileUrl ? (
+    <iframe title={file.name} src={fileUrl} className="w-full h-full border-0" />
+  ) : null;
+
+  if (isFullscreen && hasContent) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-slate-950 flex flex-col">
+        <button onClick={() => setIsFullscreen(false)} className="absolute top-6 right-6 z-10 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all"><Minimize2 size={28} /></button>
+        <div className="flex-1">{content}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center p-6 text-slate-900 font-sans">
+      <div className="max-w-5xl w-full">
+        <div className="bg-white rounded-[3rem] shadow-2xl border p-10 sm:p-14 mb-10">
+          <div className="bg-purple-100 p-6 rounded-full text-purple-600 mb-8 mx-auto w-fit"><Presentation size={56} /></div>
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-center mb-10">Clases</h2>
+
+          <form onSubmit={handleLoadCanva} className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex-1 flex items-center gap-3 bg-slate-100 rounded-2xl px-6 py-4">
+              <Link2 className="text-slate-400 shrink-0" size={24} />
+              <input
+                type="url"
+                required
+                placeholder="Pega aquí el link de la presentación de Canva"
+                value={canvaUrl}
+                onChange={(e) => setCanvaUrl(e.target.value)}
+                className="bg-transparent flex-1 outline-none text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-normal"
+              />
+            </div>
+            <button type="submit" className="bg-purple-600 text-white px-8 py-4 rounded-2xl font-black uppercase italic tracking-wide shadow-lg border-b-4 border-purple-800 hover:scale-105 transition-all">Proyectar Link</button>
+          </form>
+
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-px flex-1 bg-slate-200"></div>
+            <span className="text-slate-400 font-black uppercase text-xs tracking-widest">o</span>
+            <div className="h-px flex-1 bg-slate-200"></div>
+          </div>
+
+          <label className="flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 transition-all rounded-2xl px-6 py-8 cursor-pointer font-black uppercase text-slate-600">
+            <Upload size={24} />
+            Subir un archivo (PDF o imagen) para proyectar
+            <input type="file" accept=".pdf,image/*" onChange={handleFileChange} className="hidden" />
+          </label>
+          <p className="text-center text-slate-400 text-xs font-bold uppercase tracking-widest mt-4">El archivo solo se muestra en esta sesión, no se guarda</p>
+        </div>
+
+        {hasContent && (
+          <div className="bg-white rounded-[3rem] shadow-2xl border overflow-hidden">
+            <div className="flex justify-between items-center px-8 py-5 border-b bg-slate-900 text-white">
+              <span className="font-black uppercase italic text-sm truncate">{file ? file.name : 'Presentación Canva'}</span>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setIsFullscreen(true)} className="bg-white/10 hover:bg-white/20 p-3 rounded-full transition-all"><Maximize2 size={20} /></button>
+                <button onClick={clearContent} className="bg-white/10 hover:bg-red-600 p-3 rounded-full transition-all"><X size={20} /></button>
+              </div>
+            </div>
+            <div className="h-[70vh]">{content}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // ==========================================
 // VISTA: CONTROL REMOTO (CELULAR)
@@ -920,10 +1045,12 @@ const App = () => {
       <main className="flex-1 overflow-y-auto">
         {!selectedCategory ? (
           <CategorySelector curso={selectedCourse} onSelectCategory={setSelectedCategory} />
+        ) : selectedCategory === 'clases' ? (
+          <ClasesDisplay />
         ) : (selectedCategory === 'himno' || selectedCategory === 'karaoke') && !selectedMode ? (
           <ModeSelector onSelect={setSelectedMode} />
         ) : (
-          <MainDisplay 
+          <MainDisplay
               curso={selectedCourse} 
               modo={selectedCategory} 
               singingMode={selectedMode} 
