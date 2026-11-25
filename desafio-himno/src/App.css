@@ -56,6 +56,15 @@
 @utility rounded-5xl {
   border-radius: 2.5rem;
 }
+@utility rounded-3rem {
+  border-radius: 3rem;
+}
+@utility rounded-4rem {
+  border-radius: 4rem;
+}
+@utility rounded-5rem {
+  border-radius: 5rem;
+}
 
 @utility border-b-10 {
   border-bottom-width: 10px;

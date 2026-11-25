@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/Aventura.jsx"
+        ],
+        "createdAt": "2026-11-25T20:35:04.919Z",
+        "reason": "estilo propio del proyecto, no decision mia: App.jsx ya usaba borde inferior grueso sobre tarjetas redondeadas en 19 lugares (navbar, CategoryCard, ModeCard, botones de ruleta) antes de este cambio; Aventura.jsx lo replica por consistencia. Las apariciones en App.jsx quedan sin ignorar para que el usuario decida."
+      }
+    ]
+  }
+}
