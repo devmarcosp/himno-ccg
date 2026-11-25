@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ref, onValue, set, update, remove } from "firebase/database";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { ref, onValue, update, remove } from "firebase/database";
 import {
   Rocket, Mic2, Brain, LayoutGrid, Drum, Ear, Trophy, Medal, Users,
   Check, X, Lock, Eye, SkipForward, ThumbsUp, ThumbsDown, RefreshCw, Sparkles
 } from 'lucide-react';
 import {
   db, NOMBRES_ESTUDIANTES, HIMNO_ESTRUCTURA,
-  shuffleArray, generateBeatSequence
+  shuffleArray, generateBeatSequence, suscribirEstudiantes
 } from './shared.js';
 import { MusicNote, ActionButton } from './components.jsx';
 
@@ -271,16 +271,7 @@ export const AventuraDisplay = ({ curso }) => {
     update(ref(db, 'estado'), { cursoActual: curso, modoActual: 'aventura', gameState: 'lobby' });
     remove(ref(db, 'remoto/mensaje'));
     if (!curso) return;
-    const path = `cursos/${curso.replace(/ /g, "_").toLowerCase()}/estudiantes`;
-    const unsub = onValue(ref(db, path), (snap) => {
-      const data = snap.val();
-      if (data) setStudents(Object.values(data));
-      else {
-        const initial = (NOMBRES_ESTUDIANTES[curso] || []).map((n, i) => ({ id: i + 1, name: n, points: 0, played: false }));
-        set(ref(db, path), initial);
-        setStudents(initial);
-      }
-    });
+    const unsub = suscribirEstudiantes(curso, setStudents);
     return () => unsub();
   }, [curso]);
 
@@ -447,11 +438,8 @@ export const AventuraDisplay = ({ curso }) => {
   }, [vozLineas, cerrarEtapa]);
 
   // ── Etapa 2 · cuestionario ──────────────────────────────────
-  const responderQuiz = useCallback((opcionIdx) => {
+  const registrarQuiz = useCallback((acierto, opcionIdx) => {
     if (quizPick !== null) return;
-    const pregunta = quiz[quizIdx];
-    if (!pregunta) return;
-    const acierto = opcionIdx === pregunta.correct;
     const aciertos = quizAciertos + (acierto ? 1 : 0);
     setQuizPick(opcionIdx);
     setQuizAciertos(aciertos);
@@ -461,13 +449,19 @@ export const AventuraDisplay = ({ curso }) => {
     }, 1800);
   }, [quiz, quizIdx, quizPick, quizAciertos, cerrarEtapa]);
 
-  // Desde el celular: marcar la respuesta hablada del equipo
-  const marcarQuizManual = useCallback((acierto) => {
-    if (quizPick !== null) return;
+  const responderQuiz = useCallback((opcionIdx) => {
     const pregunta = quiz[quizIdx];
     if (!pregunta) return;
-    responderQuiz(acierto ? pregunta.correct : (pregunta.correct + 1) % pregunta.options.length);
-  }, [quiz, quizIdx, quizPick, responderQuiz]);
+    registrarQuiz(opcionIdx === pregunta.correct, opcionIdx);
+  }, [quiz, quizIdx, registrarQuiz]);
+
+  // Desde el celular: marcar si el equipo respondió bien o mal.
+  // Al marcar error no se culpa a ninguna alternativa (-1): sólo se revela la correcta.
+  const marcarQuizManual = useCallback((acierto) => {
+    const pregunta = quiz[quizIdx];
+    if (!pregunta) return;
+    registrarQuiz(acierto, acierto ? pregunta.correct : -1);
+  }, [quiz, quizIdx, registrarQuiz]);
 
   const terminarQuiz = useCallback(() => cerrarEtapa(porcentaje(quizAciertos, quiz.length || 1)), [quizAciertos, quiz, cerrarEtapa]);
 
@@ -540,6 +534,17 @@ export const AventuraDisplay = ({ curso }) => {
 
   const terminarOido = useCallback(() => cerrarEtapa(porcentaje(oidoAciertos, oido.length || 1)), [oidoAciertos, oido, cerrarEtapa]);
 
+  // Tablero que ve el profe en el celular: número, estado y, sólo si ya
+  // está descubierta, qué hay en la carta.
+  const tableroMemorice = useMemo(() => cartas.map((carta, idx) => {
+    const abierta = volteadas.includes(idx) || carta.matched;
+    return {
+      n: idx + 1,
+      e: carta.matched ? 'm' : volteadas.includes(idx) ? 'v' : 'o',
+      t: abierta ? (carta.cara.figure || carta.cara.text || carta.cara.emoji || '') : ''
+    };
+  }), [cartas, volteadas]);
+
   // ── Soplo al celular ────────────────────────────────────────
   useEffect(() => {
     let info = "", ayuda = "", progreso = "";
@@ -558,7 +563,7 @@ export const AventuraDisplay = ({ curso }) => {
         progreso = `${Math.min(quizIdx + 1, quiz.length)}/${quiz.length}`;
       }
       if (etapa.id === 'memoria') {
-        info = "El equipo juega en la pantalla grande";
+        info = "Toca el número que canta el equipo";
         ayuda = `${paresEncontrados} de ${MEMORICE_PARES} pares`;
         progreso = `${Math.max(intentosMax - intentos, 0)} intentos restantes`;
       }
@@ -593,16 +598,18 @@ export const AventuraDisplay = ({ curso }) => {
       avInfo: info || "",
       avAyuda: ayuda || "",
       avProgreso: progreso || "",
-      avPuntaje: fase === 'final' ? puntajeFinal : ultimoPuntaje
+      avPuntaje: fase === 'final' ? puntajeFinal : ultimoPuntaje,
+      avCartas: etapa.id === 'memoria' && fase === 'etapa_activa' ? tableroMemorice : []
     });
-  }, [fase, etapa, etapaIdx, equipo, curso, vozLineas, quiz, quizIdx, cartas, intentos,
-      intentosMax, paresEncontrados, ritmoEval, oido, oidoIdx, ultimoPuntaje, puntajeFinal]);
+  }, [fase, etapa, etapaIdx, equipo, curso, vozLineas, quiz, quizIdx, cartas, volteadas,
+      intentos, intentosMax, paresEncontrados, tableroMemorice, ritmoEval, oido, oidoIdx,
+      ultimoPuntaje, puntajeFinal]);
 
   // ── Listener del control remoto (refs para evitar closures viejas) ──
   const acciones = {
     girarRuleta, comenzarAventura, empezarEtapa, siguienteEtapa, reintentarEtapa, nuevoEquipo,
     validarPalabra, terminarVoz, marcarQuizManual, terminarQuiz, terminarMemorice,
-    validarCompas, terminarRitmo, marcarOidoManual, terminarOido
+    validarCompas, terminarRitmo, marcarOidoManual, terminarOido, voltearCarta
   };
   const accionesRef = useRef(acciones);
   const faseRef = useRef(fase);
@@ -654,7 +661,14 @@ export const AventuraDisplay = ({ curso }) => {
           else if (id === 'oido') a.terminarOido();
           break;
         }
-        default: break;
+        default: {
+          // Memorice manejado desde el celular: AV_CARTA_3 da vuelta la carta 3
+          const carta = /^AV_CARTA_(\d{1,2})$/.exec(data.texto || "");
+          if (carta && f === 'etapa_activa' && id === 'memoria') {
+            a.voltearCarta(Number(carta[1]) - 1);
+          }
+          break;
+        }
       }
     });
     return () => unsub();
@@ -863,7 +877,9 @@ export const AventuraDisplay = ({ curso }) => {
                             : 'bg-amber-500 border-amber-700 hover:bg-amber-400 active:scale-95'
                           }`}
                         >
-                          {abierta ? <CaraCarta cara={carta.cara} /> : <span className="text-4xl sm:text-5xl opacity-70">🎵</span>}
+                          {abierta
+                            ? <CaraCarta cara={carta.cara} />
+                            : <span className="text-5xl sm:text-6xl font-black italic text-white drop-shadow">{idx + 1}</span>}
                         </button>
                       );
                     })}
@@ -1027,6 +1043,43 @@ const Panel = ({ children }) => (
   <div className="bg-white/5 border-2 border-dashed border-white/20 p-6 rounded-3xl mb-4 text-left">{children}</div>
 );
 
+// Grilla 1-12 que replica el memorice en el celular: el profe toca el número
+// que canta el equipo y la carta se da vuelta en la pantalla grande.
+const TableroMemorice = ({ cartas, sendAction }) => {
+  const mazo = Array.isArray(cartas) ? cartas.filter(Boolean) : [];
+  if (mazo.length === 0) {
+    return <p className="text-center text-slate-500 text-[10px] font-black uppercase tracking-widest italic py-6">Preparando el tablero...</p>;
+  }
+  // Con dos cartas arriba el tablero se bloquea hasta que se resuelva la jugada
+  const bloqueado = mazo.filter(c => c.e === 'v').length >= 2;
+
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {mazo.map(carta => {
+        const lista = carta.e === 'm';
+        const arriba = carta.e === 'v';
+        const inerte = lista || arriba || bloqueado;
+        return (
+          <button
+            key={carta.n}
+            onClick={() => sendAction(`AV_CARTA_${carta.n}`)}
+            disabled={inerte}
+            className={`aspect-square rounded-2xl border-b-4 flex flex-col items-center justify-center p-1 transition-all ${
+              lista ? 'bg-green-700 border-green-900 text-green-200'
+              : arriba ? 'bg-amber-500 border-amber-700 text-white'
+              : bloqueado ? 'bg-slate-800 border-slate-900 text-slate-600'
+              : 'bg-slate-700 border-slate-900 text-white active:scale-95'
+            }`}
+          >
+            <span className="text-xl font-black italic leading-none">{lista ? '✓' : carta.n}</span>
+            {carta.t && <span className="text-[7px] font-black uppercase leading-tight text-center mt-1 px-0.5 line-clamp-2">{carta.t}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 export const AventuraRemote = ({ appState, sendAction }) => {
   const fase = appState.gameState;
   const etapaId = appState.avEtapaId;
@@ -1090,11 +1143,7 @@ export const AventuraRemote = ({ appState, sendAction }) => {
               <ActionButton onClick={() => sendAction("AV_ERROR")} bg="bg-red-600" border="border-red-800" py="py-12" rounded="rounded-4xl" fontSize="text-2xl" borderSize="border-b-12" icon={ThumbsDown} iconSize={40} gap="gap-2">ERROR</ActionButton>
             </div>
           )}
-          {etapaId === 'memoria' && (
-            <p className="text-center text-slate-500 text-[10px] font-black uppercase tracking-widest italic py-4">
-              El equipo da vuelta las cartas en la pantalla grande
-            </p>
-          )}
+          {etapaId === 'memoria' && <TableroMemorice cartas={appState.avCartas} sendAction={sendAction} />}
 
           <ActionButton onClick={() => sendAction("AV_TERMINAR_ETAPA")} bg="bg-slate-700" border="border-slate-900" py="py-5" fontSize="text-sm" icon={SkipForward} iconSize={18}>TERMINAR ETAPA AHORA</ActionButton>
         </>

@@ -5,7 +5,7 @@
 // Los componentes compartidos viven en components.jsx.
 // ==========================================
 import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+import { getDatabase, ref, onValue, get, set } from "firebase/database";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyAENUFLOZfeTu7D5u3DcJXfOtYtzU0HOVw",
@@ -82,3 +82,37 @@ export const generateBeatSequence = (beats = 4) => {
   return sequence;
 };
 
+
+// ==========================================
+// CARGA DEL CURSO
+// ==========================================
+// Se suscribe a la lista del curso y la siembra la PRIMERA vez que se usa.
+//
+// Importante: `onValue` puede entregar null por una desconexión momentánea,
+// no sólo porque el curso no exista. Sembrar a ciegas en ese caso pisa los
+// puntajes reales del curso con ceros. Por eso sólo sembramos cuando nunca
+// hemos recibido datos y el servidor confirma que el nodo no está.
+export const suscribirEstudiantes = (curso, onStudents) => {
+  const path = `cursos/${curso.replace(/ /g, "_").toLowerCase()}/estudiantes`;
+  let huboDatos = false;
+
+  return onValue(ref(db, path), (snap) => {
+    const data = snap.val();
+    if (data) {
+      huboDatos = true;
+      onStudents(Object.values(data));
+      return;
+    }
+    if (huboDatos) return; // ya tuvimos la lista: este null es un glitch, no un curso vacío
+
+    Promise.all([get(ref(db, '.info/connected')), get(ref(db, path))])
+      .then(([conectado, fresco]) => {
+        if (conectado.val() !== true || fresco.exists() || huboDatos) return;
+        const inicial = (NOMBRES_ESTUDIANTES[curso] || [])
+          .map((n, i) => ({ id: i + 1, name: n, points: 0, played: false }));
+        set(ref(db, path), inicial);
+        onStudents(inicial);
+      })
+      .catch(() => { /* sin conexión confiable: no tocar nada */ });
+  });
+};

@@ -8,7 +8,7 @@ import { ref, onValue, set, update, remove } from "firebase/database";
 import {
   db, CURSO_CON_POLIRRITMIA, NOMBRES_ESTUDIANTES, CURSOS,
   HIMNO_ESTRUCTURA, KARAOKE_ESTRUCTURA,
-  shuffleArray, generateBeatSequence
+  shuffleArray, generateBeatSequence, suscribirEstudiantes
 } from './shared.js';
 import { MusicNote, ActionButton } from './components.jsx';
 import { AventuraDisplay, AventuraRemote } from './Aventura.jsx';
@@ -669,15 +669,7 @@ const MainDisplay = ({ curso, modo = 'himno', singingMode = 'seccion', onBack, o
     update(ref(db, 'estado'), { cursoActual: curso, modoActual: modo, gameState: 'lobby' });
     remove(ref(db, 'remoto/mensaje'));
     if (!curso) return;
-    const unsub = onValue(ref(db, `cursos/${curso.replace(/ /g, "_").toLowerCase()}/estudiantes`), (snap) => {
-        const data = snap.val();
-        if (data) setStudents(Object.values(data));
-        else {
-            const initial = (NOMBRES_ESTUDIANTES[curso] || []).map((n, i) => ({ id: i + 1, name: n, points: 0, played: false }));
-            set(ref(db, `cursos/${curso.replace(/ /g, "_").toLowerCase()}/estudiantes`), initial);
-            setStudents(initial);
-        }
-    });
+    const unsub = suscribirEstudiantes(curso, setStudents);
     return () => unsub();
   }, [curso, modo]);
 
